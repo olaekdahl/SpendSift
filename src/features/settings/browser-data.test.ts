@@ -12,6 +12,7 @@ describe("settings browser data", () => {
       trialRemindersEnabled: true,
       monthlyBudgetMinor: 8500,
       monthlySavingsGoalMinor: 2500,
+      overlapThreshold: 2,
     });
 
     expect(Object.keys(result).sort()).toEqual(
@@ -20,6 +21,7 @@ describe("settings browser data", () => {
         "locale",
         "monthlyBudgetMinor",
         "monthlySavingsGoalMinor",
+        "overlapThreshold",
         "renewalRemindersEnabled",
         "timeZone",
         "trialRemindersEnabled",

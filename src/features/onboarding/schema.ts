@@ -42,6 +42,12 @@ const checkboxSchema = z.preprocess(
   z.boolean(),
 );
 
+const overlapThresholdSchema = z.preprocess(
+  (value) =>
+    value === null || value === undefined || value === "" ? 2 : Number(value),
+  z.number().int().min(2).max(5),
+);
+
 export const onboardingSchema = z.object({
   preferredCurrency: z.enum(["USD"]),
   locale: z
@@ -51,6 +57,7 @@ export const onboardingSchema = z.object({
   timeZone: timeZoneSchema,
   monthlyBudgetMinor: optionalMoneySchema,
   monthlySavingsGoalMinor: optionalMoneySchema,
+  overlapThreshold: overlapThresholdSchema,
   renewalRemindersEnabled: checkboxSchema,
   trialRemindersEnabled: checkboxSchema,
 });

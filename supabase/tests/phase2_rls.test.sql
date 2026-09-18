@@ -158,8 +158,6 @@ select ok(
       )
     )
     from unnest(array[
-      'subscription_price_history',
-      'reminders',
       'cancellation_guides',
       'audit_events'
     ]) as table_names(table_name)

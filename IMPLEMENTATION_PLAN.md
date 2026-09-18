@@ -121,19 +121,32 @@ Status: **Conditional go for local insights implementation with fictional data.*
 - [x] Verify user-scoped import and transaction deduplication.
 - [x] Verify owner, anonymous, and known-ID cross-user isolation.
 - [x] Verify audit-detail allowlists and the absence of source filenames and statement content.
-- [ ] Complete every Phase 5 price-history, overlap, savings, calendar, and reminder control.
-- [ ] Run the Phase 5-to-Phase 6 checkpoint before implementing cancellation and privacy workflows.
+- [x] Complete every Phase 5 price-history, overlap, savings, calendar, and reminder control.
+- [x] Run the Phase 5-to-Phase 6 checkpoint before implementing cancellation and privacy workflows.
 
 ## Phase 5: Insights
 
 Goal: Help the user understand changes, overlaps, upcoming costs, budget status, and possible savings.
 
-- [ ] Implement price-increase detection and confirmation.
-- [ ] Implement configurable possible-overlap detection.
-- [ ] Implement budgets, savings targets, potential savings, and realized savings.
-- [ ] Implement the upcoming-charge calendar.
-- [ ] Implement in-app reminders behind a notification service interface.
-- [ ] Add calculation and workflow tests.
+- [x] Implement price-increase detection and confirmation.
+- [x] Implement configurable possible-overlap detection.
+- [x] Implement budgets, savings targets, potential savings, and realized savings.
+- [x] Implement the upcoming-charge calendar.
+- [x] Implement in-app reminders behind a notification service interface.
+- [x] Add calculation and workflow tests.
+
+## Security gate before Phase 6
+
+Status: **Conditional go for local cancellation and privacy implementation with fictional data.** See `docs/security/checkpoints/phase-5-to-phase-6-audit.md` and `docs/security/PHASE-6-SECURITY-GATE.md`.
+
+- [x] Audit price derivation, tolerance, confirmation, concurrency, and immutable history.
+- [x] Verify advisory overlap wording, configurable thresholds, and currency separation.
+- [x] Verify budget, potential-savings, and provider-confirmed realized-savings invariants.
+- [x] Verify calendar boundaries, time-zone conversion, reminder identity, and status transitions.
+- [x] Verify owner, anonymous, and known-ID cross-user isolation.
+- [x] Verify minimal DTOs, redacted events, and no external notification transport.
+- [ ] Complete every Phase 6 cancellation-guide, export, deletion, privacy, and accessibility control.
+- [ ] Run the Phase 6-to-Phase 7 checkpoint before release hardening.
 
 ## Phase 6: Cancellation and privacy
 

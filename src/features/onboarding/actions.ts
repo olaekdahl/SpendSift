@@ -24,6 +24,7 @@ async function saveValidatedPreferences(
     timeZone: formData.get("timeZone"),
     monthlyBudgetMinor: formData.get("monthlyBudget"),
     monthlySavingsGoalMinor: formData.get("monthlySavingsGoal"),
+    overlapThreshold: formData.get("overlapThreshold"),
     renewalRemindersEnabled: formData.get("renewalRemindersEnabled"),
     trialRemindersEnabled: formData.get("trialRemindersEnabled"),
   });
@@ -31,6 +32,7 @@ async function saveValidatedPreferences(
   if (!result.success) {
     return {
       status: "error",
+      message: "Check the highlighted preferences.",
       fieldErrors: result.error.flatten().fieldErrors,
     };
   }
@@ -44,6 +46,7 @@ async function saveValidatedPreferences(
       trialRemindersEnabled: result.data.trialRemindersEnabled,
       monthlyBudgetMinor: result.data.monthlyBudgetMinor,
       monthlySavingsGoalMinor: result.data.monthlySavingsGoalMinor,
+      overlapThreshold: result.data.overlapThreshold,
     });
   } catch {
     return {

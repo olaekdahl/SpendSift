@@ -8,8 +8,12 @@ const barColors = ["#27745a", "#397a9a", "#bd613f", "#7657a8", "#df9a2f"];
 
 export function SpendingChart({
   subscriptions,
+  currency = "USD",
+  locale = "en-US",
 }: {
   subscriptions: Subscription[];
+  currency?: string;
+  locale?: string;
 }) {
   const totals = getCategoryTotals(subscriptions);
   const largestAmount = Math.max(...totals.map((item) => item.amountMinor));
@@ -30,7 +34,7 @@ export function SpendingChart({
                   {item.category}
                 </span>
                 <span className="shrink-0 font-bold text-ink">
-                  {formatMoney(item.amountMinor)}
+                  {formatMoney(item.amountMinor, currency, locale)}
                 </span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-surface-raised">

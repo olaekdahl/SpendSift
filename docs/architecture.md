@@ -2,7 +2,7 @@
 
 ## Decision status
 
-This document records the first-release architecture through Phase 4. The application implements local Supabase authentication, private persistence, manual subscription management, and a bounded fictional CSV import and review workflow.
+This document records the first-release architecture through Phase 5. The application implements local Supabase authentication, private persistence, manual subscription management, bounded fictional CSV import, and owner-scoped insights and reminders.
 
 ## Technology baseline
 
@@ -34,6 +34,8 @@ The primary features are:
 - Reminders and notification delivery
 - Budgets and savings
 - Cancellation guidance
+
+Phase 5 keeps price detection, overlap detection, budget status, and date-window calculations in pure domain modules. PostgreSQL re-derives sensitive price and cancellation decisions before writing. An in-app `NotificationService` adapter reads minimal reminder DTOs; no external notification transport exists.
 
 Shared UI belongs in `src/components`. Shared formatting and small platform utilities belong in `src/lib`. Server-only modules use the `server-only` guard where appropriate.
 

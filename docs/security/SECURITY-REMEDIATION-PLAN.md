@@ -84,6 +84,19 @@ The application implements the controls below for bounded local fictional CSV fi
 | SEC-007 | Add import lifecycle audit events and generic safe error mappings without filenames, rows, merchant text, amounts, encodings, parser stacks, or paths.                                          | P1       | Completed locally                           | Done   | Exact audit-detail allowlist and prohibited-content assertions pass                                         | Configure hosted retention, access, integrity, and alerting    |
 | SEC-003 | Apply HTTPS-only server validation to user-editable websites and cancellation URLs, reject credentials and controls, and show the destination host before navigation.                           | P1       | Shared URL schema and cancellation workflow | Small  | Unit tests for unsafe protocols and browser tests for displayed host and safe new-tab behavior              | Phase 3 for editable websites; Phase 6 for cancellation guides |
 
+## Completed Phase 5 controls
+
+- Price candidates use only newest owner-linked transactions in the subscription currency.
+- PostgreSQL re-derives price changes, checks noise and ratio bounds, locks current versions, and appends immutable history.
+- Category overlap is advisory, currency-separated, excludes inactive and uncategorized services, and uses a bounded owner preference.
+- Budget, potential savings, and realized savings use integer minor units.
+- Realized savings require explicit provider confirmation and clear on reactivation.
+- Calendar dates use date-only windows, while reminder timestamps apply the profile IANA time zone.
+- Reminder event identity prevents duplication and resurrection after read or dismissal.
+- In-app notification delivery has no email, SMS, or push transport.
+- Profile, budget, savings goal, overlap, and reminder preferences save atomically.
+- Insight and reminder DTOs exclude ownership and transaction descriptions; audit events contain no financial details.
+
 ## Required before public deployment
 
 | Finding | Exact task                                                                                                                                                                             | Priority | Dependencies                                | Effort | Verification method                                                                                                            | Blocking phase    |

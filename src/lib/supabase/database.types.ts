@@ -305,6 +305,7 @@ export type Database = {
           id: string;
           locale: string;
           onboarding_completed_at: string | null;
+          overlap_threshold: number;
           preferred_currency: string;
           renewal_reminders_enabled: boolean;
           time_zone: string;
@@ -317,6 +318,7 @@ export type Database = {
           id?: string;
           locale?: string;
           onboarding_completed_at?: string | null;
+          overlap_threshold?: number;
           preferred_currency?: string;
           renewal_reminders_enabled?: boolean;
           time_zone?: string;
@@ -329,6 +331,7 @@ export type Database = {
           id?: string;
           locale?: string;
           onboarding_completed_at?: string | null;
+          overlap_threshold?: number;
           preferred_currency?: string;
           renewal_reminders_enabled?: boolean;
           time_zone?: string;
@@ -342,7 +345,9 @@ export type Database = {
         Row: {
           created_at: string;
           due_at: string;
+          event_date: string | null;
           id: string;
+          import_suggestion_id: string | null;
           read_at: string | null;
           reminder_type: Database["public"]["Enums"]["reminder_type"];
           status: Database["public"]["Enums"]["reminder_status"];
@@ -353,7 +358,9 @@ export type Database = {
         Insert: {
           created_at?: string;
           due_at: string;
+          event_date?: string | null;
           id?: string;
+          import_suggestion_id?: string | null;
           read_at?: string | null;
           reminder_type: Database["public"]["Enums"]["reminder_type"];
           status?: Database["public"]["Enums"]["reminder_status"];
@@ -364,7 +371,9 @@ export type Database = {
         Update: {
           created_at?: string;
           due_at?: string;
+          event_date?: string | null;
           id?: string;
+          import_suggestion_id?: string | null;
           read_at?: string | null;
           reminder_type?: Database["public"]["Enums"]["reminder_type"];
           status?: Database["public"]["Enums"]["reminder_status"];
@@ -373,6 +382,13 @@ export type Database = {
           user_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "reminders_import_suggestion_fk";
+            columns: ["import_suggestion_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "import_suggestions";
+            referencedColumns: ["id", "user_id"];
+          },
           {
             foreignKeyName: "reminders_subscription_fk";
             columns: ["subscription_id", "user_id"];
@@ -466,6 +482,7 @@ export type Database = {
           new_amount_minor: number;
           percentage_basis_points: number;
           previous_amount_minor: number;
+          source_transaction_id: string | null;
           subscription_id: string;
           updated_at: string;
           user_id: string;
@@ -478,6 +495,7 @@ export type Database = {
           new_amount_minor: number;
           percentage_basis_points: number;
           previous_amount_minor: number;
+          source_transaction_id?: string | null;
           subscription_id: string;
           updated_at?: string;
           user_id: string;
@@ -490,11 +508,19 @@ export type Database = {
           new_amount_minor?: number;
           percentage_basis_points?: number;
           previous_amount_minor?: number;
+          source_transaction_id?: string | null;
           subscription_id?: string;
           updated_at?: string;
           user_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "price_history_source_transaction_fk";
+            columns: ["source_transaction_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "transactions";
+            referencedColumns: ["id", "user_id"];
+          },
           {
             foreignKeyName: "price_history_subscription_fk";
             columns: ["subscription_id", "user_id"];
@@ -522,6 +548,8 @@ export type Database = {
           next_billing_date: string;
           notes: string | null;
           payment_method_nickname: string | null;
+          provider_cancelled_at: string | null;
+          realized_monthly_minor: number | null;
           reminder_lead_days: number;
           source: Database["public"]["Enums"]["subscription_source"];
           source_import_id: string | null;
@@ -549,6 +577,8 @@ export type Database = {
           next_billing_date: string;
           notes?: string | null;
           payment_method_nickname?: string | null;
+          provider_cancelled_at?: string | null;
+          realized_monthly_minor?: number | null;
           reminder_lead_days?: number;
           source?: Database["public"]["Enums"]["subscription_source"];
           source_import_id?: string | null;
@@ -576,6 +606,8 @@ export type Database = {
           next_billing_date?: string;
           notes?: string | null;
           payment_method_nickname?: string | null;
+          provider_cancelled_at?: string | null;
+          realized_monthly_minor?: number | null;
           reminder_lead_days?: number;
           source?: Database["public"]["Enums"]["subscription_source"];
           source_import_id?: string | null;
@@ -682,6 +714,18 @@ export type Database = {
         };
         Returns: undefined;
       };
+      confirm_provider_cancellation: {
+        Args: { expected_updated_at: string; subscription_id: string };
+        Returns: undefined;
+      };
+      confirm_subscription_price_change: {
+        Args: {
+          expected_new_amount_minor: number;
+          expected_updated_at: string;
+          subscription_id: string;
+        };
+        Returns: undefined;
+      };
       create_statement_import: {
         Args: {
           attempt_id: string;
@@ -710,11 +754,33 @@ export type Database = {
         };
         Returns: undefined;
       };
+      refresh_user_reminders: { Args: never; Returns: undefined };
+      save_profile_preferences: {
+        Args: {
+          locale: string;
+          monthly_budget_minor?: number;
+          monthly_savings_goal_minor?: number;
+          overlap_threshold: number;
+          preferred_currency: string;
+          renewal_reminders_enabled: boolean;
+          time_zone: string;
+          trial_reminders_enabled: boolean;
+        };
+        Returns: undefined;
+      };
       set_import_suggestion_decision: {
         Args: {
           decision: Database["public"]["Enums"]["import_suggestion_decision"];
           expected_updated_at: string;
           suggestion_id: string;
+        };
+        Returns: undefined;
+      };
+      set_reminder_status: {
+        Args: {
+          expected_updated_at: string;
+          reminder_id: string;
+          reminder_status: Database["public"]["Enums"]["reminder_status"];
         };
         Returns: undefined;
       };

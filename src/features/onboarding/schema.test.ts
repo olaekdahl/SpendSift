@@ -8,6 +8,7 @@ const validInput = {
   timeZone: "America/New_York",
   monthlyBudgetMinor: "85.25",
   monthlySavingsGoalMinor: "",
+  overlapThreshold: "2",
   renewalRemindersEnabled: "on",
   trialRemindersEnabled: null,
 };
@@ -38,6 +39,15 @@ describe("onboardingSchema", () => {
         .success,
     ).toBe(false);
   });
+
+  it.each(["1", "6", "2.5", "script"])(
+    "rejects invalid overlap threshold %s",
+    (overlapThreshold) => {
+      expect(
+        onboardingSchema.safeParse({ ...validInput, overlapThreshold }).success,
+      ).toBe(false);
+    },
+  );
 
   it("formats stored minor units for form inputs", () => {
     expect(formatMinorUnitsForInput(8525)).toBe("85.25");

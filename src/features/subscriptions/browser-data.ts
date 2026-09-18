@@ -18,7 +18,7 @@ export type SubscriptionListItem = Pick<
 
 export type SavingsPlanItem = Pick<
   Subscription,
-  "id" | "displayName" | "category" | "currency" | "brandColor"
+  "id" | "displayName" | "category" | "currency" | "brandColor" | "updatedAt"
 > & {
   monthlyAmountMinor: number;
   selectedByDefault: boolean;
@@ -43,6 +43,7 @@ export function toSubscriptionListItems(
 
 export function toSavingsPlanItems(
   subscriptions: readonly Subscription[],
+  candidateIds?: ReadonlySet<string>,
 ): SavingsPlanItem[] {
   return subscriptions
     .filter(
@@ -55,7 +56,9 @@ export function toSavingsPlanItems(
       category: subscription.category,
       currency: subscription.currency,
       brandColor: subscription.brandColor,
+      updatedAt: subscription.updatedAt,
       monthlyAmountMinor: monthlyEquivalentMinor(subscription),
-      selectedByDefault: subscription.savingsCandidate,
+      selectedByDefault:
+        candidateIds?.has(subscription.id) ?? subscription.savingsCandidate,
     }));
 }

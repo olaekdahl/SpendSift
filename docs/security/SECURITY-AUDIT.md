@@ -49,6 +49,14 @@ Current evidence includes 108 unit and component tests, 102 pgTAP assertions, 50
 
 **Phase 5 recommendation:** Conditional go for local insights implementation with fictional data. The trusted-proxy address boundary, hosting memory behavior, ingress controls, monitoring, retention, and production cache behavior remain deployment blockers.
 
+## Phase 5 checkpoint update
+
+Phase 5 insights completed locally with no confirmed exploitable vulnerability. Price changes are derived from the newest owner-linked charge and re-derived under a row lock before immutable history and current price change atomically. Category overlap remains an advisory, currency-separated signal with a bounded owner preference. Realized savings require explicit provider confirmation and clear on reactivation.
+
+In-app reminders use owner-safe source keys, event-date identity, IANA time-zone conversion, optimistic status changes, and no external delivery. Atomic profile preferences validate currency, locale, time zone, money, and overlap bounds in PostgreSQL. The post-audit matrix passes 139 unit/component tests, 155 pgTAP assertions, 62 desktop/mobile browser scenarios, production build and cache isolation, dependency checks, and secret scanning.
+
+**Phase 6 recommendation:** Conditional go for local cancellation guidance, export, deletion, and privacy implementation with fictional data. Production and real financial data remain blocked.
+
 ## Scope
 
 This assessment covers the repository content available at `/home/ola/SpendSift` on 2026-09-17, including the local Phase 4 implementation:

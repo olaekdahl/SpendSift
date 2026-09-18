@@ -18,10 +18,17 @@ import { DashboardEmptyState } from "@/features/dashboard/dashboard-empty-state"
 import { SpendingChart } from "@/features/dashboard/spending-chart";
 import { StatCard } from "@/features/dashboard/stat-card";
 import {
+  calculateBudgetState,
+  dateWithinDays,
+  detectCategoryOverlaps,
+} from "@/features/insights/calculations";
+import { InsightsPanel } from "@/features/insights/insights-panel";
+import {
   formatMoney,
   getDashboardSummary,
 } from "@/features/subscriptions/calculations";
 import { requireAuthenticatedUser } from "@/server/auth";
+import { getPriceChangeCandidatesForUser } from "@/server/dal/insights";
 import { getProfileForUser } from "@/server/dal/profiles";
 import { getSubscriptionsForUser } from "@/server/dal/subscriptions";
 
@@ -35,15 +42,39 @@ export default async function DashboardPage() {
     getProfileForUser(user.id),
     getSubscriptionsForUser(user.id),
   ]);
+  const currencySubscriptions = subscriptions.filter(
+    (subscription) => subscription.currency === profile.currency,
+  );
+  const priceChanges = await getPriceChangeCandidatesForUser(
+    user.id,
+    currencySubscriptions,
+  );
+  const overlaps = detectCategoryOverlaps(
+    currencySubscriptions,
+    profile.overlapThreshold,
+  );
+  const savingsCandidateIds = new Set(
+    overlaps.flatMap((overlap) => overlap.candidateIds),
+  );
   const budgetMinor = profile.monthlyBudgetMinor;
-  const summary = getDashboardSummary(subscriptions, budgetMinor ?? 0);
-  const budgetPercentage = budgetMinor
-    ? Math.min(100, Math.round((summary.monthlyCostMinor / budgetMinor) * 100))
-    : 0;
-  const upcoming = subscriptions
+  const summary = getDashboardSummary(
+    currencySubscriptions.map((subscription) => ({
+      ...subscription,
+      savingsCandidate: savingsCandidateIds.has(subscription.id),
+    })),
+    budgetMinor ?? 0,
+  );
+  const budgetState = calculateBudgetState(
+    summary.monthlyCostMinor,
+    budgetMinor,
+  );
+  const budgetPercentage = Math.min(100, budgetState.percentage ?? 0);
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = currencySubscriptions
     .filter(
       (subscription) =>
-        subscription.status === "active" || subscription.status === "trial",
+        (subscription.status === "active" || subscription.status === "trial") &&
+        dateWithinDays(subscription.nextBillingDate, today, 30),
     )
     .slice()
     .sort((first, second) =>
@@ -57,7 +88,7 @@ export default async function DashboardPage() {
     timeZone: profile.timeZone,
   }).format(new Date());
 
-  if (subscriptions.length === 0) {
+  if (currencySubscriptions.length === 0) {
     return (
       <>
         <PageHeader
@@ -120,10 +151,10 @@ export default async function DashboardPage() {
           <StatCard
             label="Budget remaining"
             value={
-              budgetMinor === null
+              budgetState.remainingMinor === null
                 ? "Not set"
                 : formatMoney(
-                    summary.budgetRemainingMinor,
+                    budgetState.remainingMinor,
                     profile.currency,
                     profile.locale,
                   )
@@ -161,8 +192,24 @@ export default async function DashboardPage() {
                 Planned recurring cost against your limit
               </p>
             </div>
-            <Badge tone={budgetMinor === null ? "neutral" : "success"}>
-              {budgetMinor === null ? "Not configured" : "On track"}
+            <Badge
+              tone={
+                budgetState.status === "over"
+                  ? "danger"
+                  : budgetState.status === "near"
+                    ? "warning"
+                    : budgetState.status === "on_track"
+                      ? "success"
+                      : "neutral"
+              }
+            >
+              {budgetState.status === "not_set"
+                ? "Not configured"
+                : budgetState.status === "over"
+                  ? "Over budget"
+                  : budgetState.status === "near"
+                    ? "Near limit"
+                    : "On track"}
             </Badge>
           </div>
           <div className="mb-3 flex items-end justify-between gap-4">
@@ -207,10 +254,10 @@ export default async function DashboardPage() {
             <div>
               <p className="text-xs font-semibold text-muted">Room left</p>
               <p className="mt-1 text-lg font-extrabold text-brand-strong">
-                {budgetMinor === null
+                {budgetState.remainingMinor === null
                   ? "Not set"
                   : formatMoney(
-                      summary.budgetRemainingMinor,
+                      budgetState.remainingMinor,
                       profile.currency,
                       profile.locale,
                     )}
@@ -231,7 +278,11 @@ export default async function DashboardPage() {
               <CircleDollarSign aria-hidden="true" className="size-4.5" />
             </span>
           </div>
-          <SpendingChart subscriptions={subscriptions} />
+          <SpendingChart
+            subscriptions={currencySubscriptions}
+            currency={profile.currency}
+            locale={profile.locale}
+          />
         </Card>
       </div>
 
@@ -289,20 +340,7 @@ export default async function DashboardPage() {
           </ul>
         </Card>
 
-        <Card className="grid min-h-56 place-items-center p-6 text-center">
-          <div>
-            <span className="mx-auto grid size-10 place-items-center rounded-md bg-brand-soft text-brand-strong">
-              <CalendarClock aria-hidden="true" className="size-5" />
-            </span>
-            <h2 className="mt-4 text-base font-extrabold text-ink">
-              No urgent reviews
-            </h2>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-muted">
-              Price changes and possible overlaps appear here after matching
-              transaction history is available.
-            </p>
-          </div>
-        </Card>
+        <InsightsPanel priceChanges={priceChanges} overlaps={overlaps} />
       </div>
 
       <div className="mt-5 flex items-start gap-3 rounded-lg border border-line bg-surface-raised px-4 py-4 text-sm leading-6 text-muted">

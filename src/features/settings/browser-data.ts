@@ -6,6 +6,7 @@ export type SettingsPreferences = {
   trialRemindersEnabled: boolean;
   monthlyBudgetMinor: number | null;
   monthlySavingsGoalMinor: number | null;
+  overlapThreshold: number;
 };
 
 export function toSettingsPreferences(profile: SettingsPreferences) {
@@ -17,5 +18,6 @@ export function toSettingsPreferences(profile: SettingsPreferences) {
     trialRemindersEnabled: profile.trialRemindersEnabled,
     monthlyBudgetMinor: profile.monthlyBudgetMinor,
     monthlySavingsGoalMinor: profile.monthlySavingsGoalMinor,
+    overlapThreshold: profile.overlapThreshold,
   } satisfies SettingsPreferences;
 }

@@ -49,6 +49,7 @@ describe("subscription browser data", () => {
         "id",
         "monthlyAmountMinor",
         "selectedByDefault",
+        "updatedAt",
       ].sort(),
     );
   });

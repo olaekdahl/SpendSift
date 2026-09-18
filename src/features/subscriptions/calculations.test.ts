@@ -23,6 +23,28 @@ describe("subscription calculations", () => {
     expect(annual && monthlyEquivalentMinor(annual)).toBe(750);
   });
 
+  it.each([
+    ["weekly", undefined, 5200, 433],
+    ["monthly", undefined, 1200, 100],
+    ["every_two_months", undefined, 600, 50],
+    ["quarterly", undefined, 400, 33],
+    ["every_six_months", undefined, 200, 17],
+    ["annual", undefined, 100, 8],
+    ["custom", 10, 3650, 304],
+  ] as const)(
+    "converts %s billing without stored floating point",
+    (frequency, customIntervalDays, annual, monthly) => {
+      const fixture = {
+        ...demoSubscriptions[0],
+        amountMinor: 100,
+        frequency,
+        customIntervalDays,
+      };
+      expect(annualizedAmountMinor(fixture)).toBe(annual);
+      expect(monthlyEquivalentMinor(fixture)).toBe(monthly);
+    },
+  );
+
   it("calculates dashboard totals from active and trial records", () => {
     expect(getDashboardSummary(demoSubscriptions, demoBudgetMinor)).toEqual({
       activeCount: 6,

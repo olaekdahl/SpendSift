@@ -47,7 +47,7 @@ export function PreferencesDemo({ profile }: { profile: SettingsPreferences }) {
             These choices apply to your private workspace.
           </p>
         </div>
-        <div className="grid gap-5 p-5 sm:grid-cols-3 sm:p-6">
+        <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
           <label className="block">
             <span className="mb-2 flex items-center gap-2 text-sm font-bold text-ink">
               <Globe2 aria-hidden="true" className="size-4 text-muted" />
@@ -119,6 +119,22 @@ export function PreferencesDemo({ profile }: { profile: SettingsPreferences }) {
               {timeZones.map((timeZone) => (
                 <option key={timeZone} value={timeZone}>
                   {timeZone.replaceAll("_", " ")}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-bold text-ink">
+              Overlap alert threshold
+            </span>
+            <select
+              name="overlapThreshold"
+              defaultValue={profile.overlapThreshold}
+              className="h-11 w-full rounded-md border border-line bg-surface-raised px-3 text-sm text-ink"
+            >
+              {[2, 3, 4, 5].map((threshold) => (
+                <option key={threshold} value={threshold}>
+                  {threshold} services per category
                 </option>
               ))}
             </select>

@@ -90,21 +90,30 @@ test("maps, edits, approves, merges, defers, and summarizes an import", async ({
     expect(accessibilityResults.violations).toEqual([]);
 
     const admin = getAdminClient();
-    const [{ data: suggestions }, { data: subscriptions }, { data: imports }] =
-      await Promise.all([
-        admin
-          .from("import_suggestions")
-          .select("display_name, decision")
-          .eq("user_id", account.id),
-        admin
-          .from("subscriptions")
-          .select("display_name, source")
-          .eq("user_id", account.id),
-        admin
-          .from("statement_imports")
-          .select("status, row_count")
-          .eq("user_id", account.id),
-      ]);
+    const [
+      { data: suggestions },
+      { data: subscriptions },
+      { data: imports },
+      { data: reminders },
+    ] = await Promise.all([
+      admin
+        .from("import_suggestions")
+        .select("display_name, decision")
+        .eq("user_id", account.id),
+      admin
+        .from("subscriptions")
+        .select("display_name, source")
+        .eq("user_id", account.id),
+      admin
+        .from("statement_imports")
+        .select("status, row_count")
+        .eq("user_id", account.id),
+      admin
+        .from("reminders")
+        .select("reminder_type, import_suggestion_id")
+        .eq("user_id", account.id)
+        .eq("reminder_type", "review_later"),
+    ]);
 
     expect(suggestions).toEqual(
       expect.arrayContaining([
@@ -136,6 +145,9 @@ test("maps, edits, approves, merges, defers, and summarizes an import", async ({
     );
     expect(imports).toEqual([
       expect.objectContaining({ status: "completed", row_count: 11 }),
+    ]);
+    expect(reminders).toEqual([
+      expect.objectContaining({ reminder_type: "review_later" }),
     ]);
   } finally {
     await deleteTestAccount(account);

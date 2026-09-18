@@ -102,7 +102,14 @@ test("has no serious accessibility violations or horizontal overflow", async ({
   try {
     await signInTestAccount(page, account);
 
-    for (const path of ["/dashboard", "/subscriptions", "/import"]) {
+    for (const path of [
+      "/dashboard",
+      "/subscriptions",
+      "/import",
+      "/calendar",
+      "/savings",
+      "/settings",
+    ]) {
       await page.goto(path);
       const accessibilityResults = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa"])

@@ -4,7 +4,7 @@ SubTrack is a mobile-friendly web application that helps individual consumers id
 
 ## Current status
 
-Phase 4 provides local email and password authentication, protected application routes, onboarding, private Supabase persistence, manual subscription management, and a bounded CSV statement-import workflow with explicit review.
+Phase 5 provides local authentication, private persistence, manual subscription management, bounded fictional CSV import, price and overlap insights, budget and savings calculations, an upcoming-charge calendar, and in-app reminders.
 
 Use only the downloadable fictional CSV sample. Real statements and production deployment remain blocked until trusted ingress, resource, monitoring, retention, and hosted security controls pass their deployment gates.
 

@@ -29,6 +29,9 @@ The model uses STRIDE:
 - An authenticated same-origin CSV Route Handler with streaming byte limits, account and network-aware throttling, and one-active-import enforcement.
 - A provider-neutral importer contract, maintained CSV parser, strict mapping schema, merchant normalizer, and deterministic recurrence detector.
 - User-scoped import and transaction fingerprints with database uniqueness and bounded atomic persistence functions.
+- Owner-linked price-change detection with database re-derivation, immutable history, and stale-write protection.
+- Currency-separated advisory overlap detection, integer budget and savings calculations, and explicit provider-cancellation snapshots.
+- Event-keyed in-app reminders behind a notification interface with no external delivery.
 - Redacted audit triggers for profile, subscription, budget, and savings-goal row changes.
 - Client Components for navigation, theme selection, filtering, CSV mapping and preview, review decisions, savings selection, and validated forms.
 - Request memory only for raw CSV bytes and React component memory for unsaved file selection and savings choices.
@@ -40,13 +43,11 @@ The model uses STRIDE:
 
 ### What is partially scaffolded
 
-- Price history, reminders, and cancellation guides exist with RLS but remain inaccessible until their owning phases.
-- Budgets and savings goals persist, while Phase 5 calculations and workflows remain incomplete.
+- Cancellation guides exist with RLS but remain inaccessible until Phase 6.
 - Audit events cover current writes, while deployment monitoring, alerts, and retention remain unimplemented.
 
 ### What is planned
 
-- Price-change confirmation, overlap insights, reminders, and complete savings calculations in Phase 5.
 - Account export, account deletion, and retention processing.
 - Future bank and email adapters, which are outside the first release.
 
@@ -293,8 +294,8 @@ All rows below assume these baseline controls:
 | `import_column_mappings`     | Allow owner                                     | Controlled RPC         | Deny                       | Parent cascade       | Deny all  | Deny all   | Mapping ownership agrees with the parent import; date format and header lengths are constrained                        |
 | `merchant_aliases`           | Allow owner                                     | Deferred               | Deferred                   | Deferred             | Deny all  | Deny all   | User aliases remain separate from any future moderated global aliases                                                  |
 | `import_suggestions`         | Allow owner                                     | Controlled RPC         | Controlled RPC             | Parent cascade       | Deny all  | Deny all   | Optimistic review decisions and owner-safe import and subscription relationships                                       |
-| `subscription_price_history` | Deferred to Phase 5                             | Deferred               | Deferred                   | Deferred             | Deny all  | Deny all   | Prefer append through a controlled domain operation; users confirm but do not rewrite history silently                 |
-| `reminders`                  | Deferred to Phase 5                             | Deferred               | Deferred                   | Deferred             | Deny all  | Deny all   | Notification worker access needs a separate minimal role and redacted payload                                          |
+| `subscription_price_history` | Allow owner                                     | Controlled RPC         | Deny                       | Deny                 | Deny all  | Deny all   | Append-oriented confirmation re-derives the newest owner-linked transaction and stores its source                      |
+| `reminders`                  | Allow owner                                     | Trigger or RPC         | Controlled RPC             | Parent cascade       | Deny all  | Deny all   | Event-date and source uniqueness prevent duplicate or resurrected in-app notices; no external delivery                 |
 | `budgets`                    | Allow                                           | Allowed owner columns  | Allowed owner columns      | Allow                | Deny all  | Deny all   | Implemented for onboarding and settings; identity columns are not writable                                             |
 | `savings_goals`              | Allow                                           | Allowed owner columns  | Allowed goal columns       | Allow                | Deny all  | Deny all   | Implemented; realized savings remains non-writable until confirmed cancellation workflows                              |
 | `cancellation_guides`        | Deferred to Phase 6                             | Deferred               | Deferred                   | Deferred             | Deny all  | Deny all   | User-owned guides and future community guides require separate tables or explicit moderation states                    |

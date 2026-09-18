@@ -4,11 +4,14 @@ import { CalendarCheck2, Clock3 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { dateWithinDays } from "@/features/insights/calculations";
+import { ReminderList } from "@/features/reminders/reminder-list";
 import { formatMoney } from "@/features/subscriptions/calculations";
 import { frequencyLabels } from "@/features/subscriptions/presentation";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { getProfileForUser } from "@/server/dal/profiles";
 import { getSubscriptionsForUser } from "@/server/dal/subscriptions";
+import { inAppNotificationService } from "@/server/notifications/in-app";
 
 export const metadata: Metadata = {
   title: "Calendar",
@@ -16,19 +19,18 @@ export const metadata: Metadata = {
 
 export default async function CalendarPage() {
   const user = await requireAuthenticatedUser();
-  const [profile, subscriptions] = await Promise.all([
+  const [profile, subscriptions, reminders] = await Promise.all([
     getProfileForUser(user.id),
     getSubscriptionsForUser(user.id),
+    inAppNotificationService.listForUser(user.id),
   ]);
-  const today = new Date();
-  const horizon = new Date(today);
-  horizon.setUTCDate(horizon.getUTCDate() + 30);
+  const today = new Date().toISOString().slice(0, 10);
   const upcoming = subscriptions
     .filter(
       (subscription) =>
+        subscription.currency === profile.currency &&
         (subscription.status === "active" || subscription.status === "trial") &&
-        new Date(`${subscription.nextBillingDate}T12:00:00Z`) >= today &&
-        new Date(`${subscription.nextBillingDate}T12:00:00Z`) <= horizon,
+        dateWithinDays(subscription.nextBillingDate, today, 30),
     )
     .slice()
     .sort((first, second) =>
@@ -43,6 +45,21 @@ export default async function CalendarPage() {
   ];
   const trial = upcoming.find(
     (subscription) => subscription.status === "trial",
+  );
+  const reminderCard = (
+    <Card className="overflow-hidden">
+      <div className="border-b border-line px-5 py-4">
+        <h2 className="text-base font-extrabold text-ink">In-app reminders</h2>
+        <p className="mt-1 text-xs text-muted">
+          No email, SMS, or push delivery is enabled.
+        </p>
+      </div>
+      <ReminderList
+        reminders={reminders}
+        locale={profile.locale}
+        timeZone={profile.timeZone}
+      />
+    </Card>
   );
 
   return (
@@ -59,20 +76,23 @@ export default async function CalendarPage() {
       />
 
       {upcoming.length === 0 ? (
-        <Card className="grid min-h-72 place-items-center p-8 text-center">
-          <div>
-            <CalendarCheck2
-              aria-hidden="true"
-              className="mx-auto size-8 text-brand-strong"
-            />
-            <h2 className="mt-4 text-lg font-extrabold text-ink">
-              No charges in the next 30 days
-            </h2>
-            <p className="mt-2 text-sm text-muted">
-              Upcoming renewals appear here after you add subscriptions.
-            </p>
-          </div>
-        </Card>
+        <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
+          <Card className="grid min-h-72 place-items-center p-8 text-center">
+            <div>
+              <CalendarCheck2
+                aria-hidden="true"
+                className="mx-auto size-8 text-brand-strong"
+              />
+              <h2 className="mt-4 text-lg font-extrabold text-ink">
+                No charges in the next 30 days
+              </h2>
+              <p className="mt-2 text-sm text-muted">
+                Upcoming renewals appear here after you add subscriptions.
+              </p>
+            </div>
+          </Card>
+          <aside>{reminderCard}</aside>
+        </div>
       ) : (
         <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
           <div className="space-y-7">
@@ -193,6 +213,7 @@ export default async function CalendarPage() {
                 </p>
               </Card>
             ) : null}
+            {reminderCard}
           </aside>
         </div>
       )}

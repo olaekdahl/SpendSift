@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
+import { detectCategoryOverlaps } from "@/features/insights/calculations";
 import { SavingsPlanner } from "@/features/savings/savings-planner";
 import { toSavingsPlanItems } from "@/features/subscriptions/browser-data";
 import { formatMoney } from "@/features/subscriptions/calculations";
@@ -19,7 +20,21 @@ export default async function SavingsPage() {
     getProfileForUser(user.id),
     getSubscriptionsForUser(user.id),
   ]);
-  const plans = toSavingsPlanItems(subscriptions);
+  const overlaps = detectCategoryOverlaps(
+    subscriptions.filter(
+      (subscription) => subscription.currency === profile.currency,
+    ),
+    profile.overlapThreshold,
+  );
+  const candidateIds = new Set(
+    overlaps.flatMap((overlap) => overlap.candidateIds),
+  );
+  const plans = toSavingsPlanItems(
+    subscriptions.filter(
+      (subscription) => subscription.currency === profile.currency,
+    ),
+    candidateIds,
+  );
   const identifiedSavingsMinor = plans
     .filter((plan) => plan.selectedByDefault)
     .reduce((total, plan) => total + plan.monthlyAmountMinor, 0);
@@ -49,7 +64,13 @@ export default async function SavingsPage() {
           </Badge>
         }
       />
-      <SavingsPlanner subscriptions={plans} />
+      <SavingsPlanner
+        subscriptions={plans}
+        realizedSavingsMinor={profile.realizedSavingsMinor}
+        monthlyGoalMinor={profile.monthlySavingsGoalMinor}
+        currency={profile.currency}
+        locale={profile.locale}
+      />
     </>
   );
 }
