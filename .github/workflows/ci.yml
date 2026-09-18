@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Scan Git history for secrets
+        run: >-
+          docker run --rm --volume "$PWD:/repo"
+          ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f # v8.30.1
+          git /repo --redact --no-banner
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start local Supabase
+        run: npm run db:start
+
+      - name: Configure local application
+        shell: bash
+        run: |
+          status="$(npx supabase status -o env)"
+          api_url="$(printf '%s\n' "$status" | sed -n 's/^API_URL=//p' | tr -d '"')"
+          publishable_key="$(printf '%s\n' "$status" | sed -n 's/^PUBLISHABLE_KEY=//p' | tr -d '"')"
+          echo "APP_URL=http://localhost:3000" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_URL=$api_url" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$publishable_key" >> "$GITHUB_ENV"
+
+      - name: Verify release candidate
+        run: npm run verify
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: Validate dependency tree
+        run: npm ls --all
+
+      - name: Scan Git-visible files for secrets
+        shell: bash
+        run: |
+          scan_dir="$(mktemp -d)"
+          git ls-files --cached --others --exclude-standard -z \
+            | tar --null -T - -cf - \
+            | tar -xf - -C "$scan_dir"
+          docker run --rm --volume "$scan_dir:/repo" \
+            ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
+            dir /repo --redact --no-banner
+          rm -rf "$scan_dir"

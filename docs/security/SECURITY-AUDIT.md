@@ -67,6 +67,14 @@ The post-audit matrix passes 153 unit/component tests, 191 pgTAP assertions, 76 
 
 **Phase 7 recommendation:** Go for local release hardening and documentation. Deployment and real financial data remain blocked pending infrastructure approval.
 
+## Final release checkpoint
+
+The final whole-repository audit found no confirmed exploitable vulnerability and verified every first-release acceptance criterion. A clean locked install and the complete `npm run verify` gate pass. Application schemas lint cleanly, all automated test layers pass, production cache isolation holds, dependency and signature checks pass, a CycloneDX SBOM is generated, and history plus Git-visible secret scans are clean.
+
+Release hardening adds route-specific loading states without weakening owner-blind 404 status, a generic root error document, pinned CI actions, application-schema linting, one complete release command, and tested local backup and restore instructions.
+
+**Final decision:** Go for local fictional-data use and CI. No-go for deployment or real financial data until every prerequisite in `docs/deployment.md` receives implementation evidence and approval.
+
 ## Scope
 
 This assessment covers the repository content available at `/home/ola/SpendSift` on 2026-09-17, including the local Phase 6 implementation:

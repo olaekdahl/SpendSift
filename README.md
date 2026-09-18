@@ -4,7 +4,7 @@ SubTrack is a mobile-friendly web application that helps individual consumers id
 
 ## Current status
 
-Phase 6 provides local authentication, private persistence, subscription management, bounded fictional CSV import, insights, in-app reminders, owner cancellation guides, password-protected JSON export, and confirmed account deletion.
+The local first-release feature set is complete: authentication, private persistence, subscription management, bounded fictional CSV import, insights, in-app reminders, owner cancellation guides, password-protected JSON export, and confirmed account deletion.
 
 Use only the downloadable fictional CSV sample. Real statements and production deployment remain blocked until trusted ingress, resource, monitoring, retention, and hosted security controls pass their deployment gates.
 
@@ -58,6 +58,16 @@ Do not create hosted resources until you approve deployment work. When that phas
 
 ## Project checks
 
+Run the complete destructive local release gate:
+
+```bash
+npm run verify
+```
+
+This command resets the local database. Use it only when disposable local data is acceptable.
+
+For individual checks, run:
+
 Run these commands before you accept a change:
 
 ```bash
@@ -84,6 +94,8 @@ npx playwright install chromium
 - Read `docs/architecture.md` for technical boundaries and security decisions.
 - Read `IMPLEMENTATION_PLAN.md` for phase status and checklists.
 - Read `docs/future-roadmap.md` for intentionally deferred features.
+- Read `docs/operations.md` for start, backup, restore, update, troubleshooting, and incident procedures.
+- Read `docs/deployment.md` for the unresolved production prerequisites and staged rollout process.
 
 ## Privacy notice
 

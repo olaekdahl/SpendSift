@@ -168,20 +168,22 @@ Status: **Go for local release hardening; deployment remains blocked.** See `doc
 - [x] Verify account deletion targets only the current Auth user and cascades every owner table.
 - [x] Verify cookie expiry, replay denial, anonymous deletion receipts, and audit privacy.
 - [x] Verify privacy disclosure accuracy, mobile layout, keyboard access, and screen-reader labels.
-- [ ] Complete every Phase 7 release and operational-documentation check.
-- [ ] Run the final whole-repository security audit before the release-candidate commit.
+- [x] Complete every Phase 7 release and operational-documentation check.
+- [x] Run the final whole-repository security audit before the release-candidate commit.
 
 ## Phase 7: Production readiness
 
 Goal: Verify release behavior and document deployment without purchasing or deploying services.
 
-- [ ] Complete unit, component, integration, and primary-journey Playwright tests.
-- [ ] Run dependency and security audits and assess each result.
-- [ ] Improve performance, loading states, and generic error handling.
-- [ ] Verify linting, type checking, tests, and the production build in a clean environment.
-- [ ] Add non-developer setup, operation, backup, and deployment instructions.
-- [ ] Document the deferred roadmap.
+- [x] Complete unit, component, integration, and primary-journey Playwright tests.
+- [x] Run dependency and security audits and assess each result.
+- [x] Improve performance, loading states, and generic error handling.
+- [x] Verify linting, type checking, tests, and the production build in a clean environment.
+- [x] Add non-developer setup, operation, backup, and deployment instructions.
+- [x] Document the deferred roadmap.
 
 ## Release gate
 
-Do not mark the first release complete until every acceptance criterion in `docs/product-requirements.md` passes. Do not begin a later phase before the current phase works and has a plain-language completion summary.
+Status: **Complete for local use with fictional data. Deployment and real financial data remain blocked.** See `docs/RELEASE-READINESS.md` and `docs/security/checkpoints/final-release-audit.md`.
+
+Every acceptance criterion in `docs/product-requirements.md` passes locally. A production release requires the separate infrastructure approvals and controls in `docs/deployment.md`.
