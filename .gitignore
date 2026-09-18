@@ -1,0 +1,189 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+/playwright-report/
+/test-results/
+/blob-report/
+/.nyc_output/
+
+# browser sessions and captured traffic
+/.auth/
+/playwright/.auth/
+/e2e/.auth/
+**/storage-state*.json
+**/storageState*.json
+**/cookies*.json
+**/cookies.txt
+*.har
+*.trace
+*.trace.zip
+/screenshots/
+/.playwright-mcp/
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+*.bak
+*.old
+*.orig
+.history/
+
+# private keys, certificates, and key stores
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.kdbx
+id_dsa
+id_ecdsa
+id_ed25519
+id_rsa
+
+# debug
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.dmp
+*.heapprofile
+*.heapsnapshot
+core
+core.*
+
+# environment files and local secret stores
+.env*
+!/.env.example
+.envrc
+.direnv/
+.dev.vars*
+.runtimeconfig.json
+/.secrets/
+/secrets/
+**/credentials*.json
+**/secrets*.json
+**/service-account*.json
+
+# package registry and service credentials
+.npmrc
+.yarnrc
+.pnpmrc
+.pypirc
+.netrc
+.git-credentials
+.pgpass
+pgpass.conf
+.vault-token
+.sentryclirc
+sentry.properties
+*.postman_environment.json
+*.postman_globals.json
+.insomnia/
+.http-client.private.env.json
+http-client.private.env.json
+
+# local cloud and deployment state
+/.aws/
+/.azure/
+/.gcloud/
+/.kube/
+/.docker/
+/.supabase/
+/supabase/.branches/
+/supabase/.temp/
+/.wrangler/
+/.netlify/
+
+# vercel
+/.vercel/
+
+# local databases, dumps, and backups
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.dump
+*.backup
+*.sql.gz
+*.dump.sql
+*backup*.sql
+/backups/
+/.data/
+
+# financial files and user-generated exports are private by default
+*.csv
+*.tsv
+*.ofx
+*.qfx
+*.qbo
+*.mt940
+*.xls
+*.xlsx
+*.ods
+*.pdf
+!/public/samples/demo-statement.csv
+/exports/
+/local-data/
+/private/
+/private-data/
+/statement-uploads/
+/statements/
+/storage/
+/temp/
+/tmp/
+/uploads/
+
+# infrastructure state can contain credentials and rendered secrets
+/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+kubeconfig
+kubeconfig.*
+*.mobileprovision
+*.provisionprofile
+
+# local editor configuration can contain environment values
+/.vscode/settings.json
+/.vscode/launch.json
+/.vscode/*.local.json
+/.idea/workspace.xml
+/.idea/dataSources.local.xml
+/.idea/httpRequests/
+/.claude/settings.local.json
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

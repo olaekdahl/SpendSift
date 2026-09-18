@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --canvas: #f3f5f1;
+  --surface: #ffffff;
+  --surface-raised: #f8faf7;
+  --ink: #17231d;
+  --muted: #59665e;
+  --line: #dce3dd;
+  --brand: #27745a;
+  --brand-strong: #165540;
+  --brand-soft: #dff0e8;
+  --amber: #8f4e0b;
+  --amber-soft: #fff1d6;
+  --danger: #983b36;
+  --danger-soft: #fbe6e3;
+  --blue: #356d8a;
+  --blue-soft: #e0eef5;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-warning: var(--amber);
+  --color-warning-soft: var(--amber-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--blue);
+  --color-info-soft: var(--blue-soft);
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-newsreader);
+}
+
+.dark {
+  --canvas: #101713;
+  --surface: #18211c;
+  --surface-raised: #1d2822;
+  --ink: #eef3ef;
+  --muted: #a1ada5;
+  --line: #314038;
+  --brand: #64b894;
+  --brand-strong: #8ed2b2;
+  --brand-soft: #223e32;
+  --amber: #efb95e;
+  --amber-soft: #44361f;
+  --danger: #ef8b83;
+  --danger-soft: #472b29;
+  --blue: #83bad4;
+  --blue-soft: #233b47;
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+button,
+a,
+input,
+select {
+  outline: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--canvas),
+    0 0 0 4px var(--brand);
+}
+
+::selection {
+  background: var(--brand-soft);
+  color: var(--ink);
+}
+
+@keyframes rise-in {
+  from {
+    transform: translateY(12px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.rise-in {
+  animation: rise-in 500ms ease-out both;
+}
+
+.rise-in-delay-1 {
+  animation-delay: 100ms;
+}
+
+.rise-in-delay-2 {
+  animation-delay: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
