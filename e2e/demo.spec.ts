@@ -25,7 +25,7 @@ test("opens the public site and protects the private dashboard", async ({
   await expect(page).toHaveURL(/\/auth\/sign-in\?next=%2Fdashboard$/);
 });
 
-test("filters subscriptions and reviews statement suggestions", async ({
+test("filters subscriptions and opens the statement workspace", async ({
   page,
 }) => {
   const account = await createTestAccount({
@@ -46,14 +46,10 @@ test("filters subscriptions and reviews statement suggestions", async ({
     ).toBeVisible();
 
     await page.getByRole("link", { name: "Import", exact: true }).click();
-    await page
-      .getByRole("button", { name: "Confirm CloudNest Storage" })
-      .click();
-    await page.getByRole("button", { name: "Reject Riverside Market" }).click();
-
-    await expect(page.getByText("2 of 3 reviewed")).toBeVisible();
-    await expect(page.getByText("Confirmed")).toBeVisible();
-    await expect(page.getByText("Rejected")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Choose a fictional CSV statement" }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sample CSV" })).toBeVisible();
   } finally {
     await deleteTestAccount(account);
   }
@@ -106,7 +102,7 @@ test("has no serious accessibility violations or horizontal overflow", async ({
   try {
     await signInTestAccount(page, account);
 
-    for (const path of ["/dashboard", "/subscriptions"]) {
+    for (const path of ["/dashboard", "/subscriptions", "/import"]) {
       await page.goto(path);
       const accessibilityResults = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa"])

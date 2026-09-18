@@ -2,7 +2,7 @@
 
 ## Decision status
 
-This document records the first-release architecture. Phase 2 implements local Supabase authentication, PostgreSQL persistence, protected server-rendered routes, onboarding, and Row Level Security. Statement parsing remains deferred to Phase 4.
+This document records the first-release architecture through Phase 4. The application implements local Supabase authentication, private persistence, manual subscription management, and a bounded fictional CSV import and review workflow.
 
 ## Technology baseline
 
@@ -39,7 +39,7 @@ Shared UI belongs in `src/components`. Shared formatting and small platform util
 
 ## Data flow
 
-Browser components send validated commands to server actions or route handlers. Server code verifies the authenticated user, validates input with Zod, and accesses Supabase with a user-scoped client. PostgreSQL Row Level Security provides a second authorization boundary.
+Browser components send validated commands to Server Actions or Route Handlers. Server code verifies the authenticated user, validates input with Zod, and accesses Supabase with a user-scoped client. PostgreSQL grants, RLS reads, owner-safe foreign keys, and authenticated mutation functions protect the database boundary.
 
 Use structured results with either validated data or a stable, generic error code. Do not return internal errors or sensitive details to the browser.
 
@@ -57,7 +57,7 @@ Server-only DAL modules under `src/server/dal` select minimal columns and map ro
 
 ## Statement import design
 
-Define a statement importer interface that returns a normalized, provider-neutral transaction shape. The initial CSV adapter implements that interface. Future OFX, QFX, and text-based PDF adapters can reuse mapping, review, detection, and persistence workflows.
+The `StatementImporter` interface returns a normalized, provider-neutral transaction shape. The initial CSV adapter implements that interface. Future OFX, QFX, and text-based PDF adapters require separate security review before they can reuse mapping, review, detection, and persistence workflows.
 
 Process an import in these stages:
 
@@ -72,7 +72,9 @@ Process an import in these stages:
 9. Discard the raw upload.
 10. Create subscriptions only after explicit user approval.
 
-The application sanitizes exported spreadsheet cells that start with formula control characters. Logs contain only event types, counts, opaque identifiers, and safe error codes.
+The upload Route Handler verifies signed claims and exact origin before reading a body. It applies a 5 MiB streaming ceiling, bounded structure limits, account and network-aware throttling, and one-active-import enforcement. Raw bytes remain in request memory only and are cleared after processing. PostgreSQL accepts normalized results through bounded atomic functions and enforces user-scoped file and transaction uniqueness.
+
+The application sanitizes exported spreadsheet cells that start with formula control characters. Audit records contain only event types, counts, opaque identifiers, duration buckets, and safe error codes. Production remains blocked until a trusted ingress proxy controls forwarding headers and hosting memory behavior is verified.
 
 ## Future-provider interfaces
 
@@ -83,13 +85,13 @@ Keep these interfaces independent from the core subscription model:
 - `EmailDiscoveryProvider` produces review candidates in a future release.
 - `NotificationService` delivers in-app reminders now and can support email, push, or SMS adapters later.
 
-No Phase 1 code implements bank, email, or external notification providers.
+No current code implements bank, email, or external notification providers.
 
 ## Database and authorization
 
-Phase 2 adds migrations for profiles, subscriptions, transactions, statement imports, column mappings, merchant aliases, price history, reminders, budgets, savings goals, cancellation guides, and audit events.
+Phase 2 added the base schema. Phase 3 opened owner-scoped manual subscription mutations. Phase 4 opened owner-scoped import reads and controlled mutation functions for attempts, statement imports, mappings, transactions, suggestions, and reviewed subscription creation.
 
-Every user-owned row includes `user_id`. Every table enables Row Level Security and begins with revoked `anon` and `authenticated` grants. Phase 2 grants only profile preferences, onboarding budgets and savings goals, and subscription reads. Future tables remain inaccessible until their owning phase adds reviewed policies. Server code also filters by verified ownership. Cross-owner foreign keys are blocked, and pgTAP plus browser tests verify two-user isolation.
+Every user-owned row includes `user_id`. Every table enables Row Level Security and begins with revoked `anon` and `authenticated` grants. Each phase adds only its reviewed columns, policies, or controlled functions. Future tables remain inaccessible until their owning phase. Server code also filters by verified ownership. Cross-owner foreign keys are blocked, and pgTAP plus browser tests verify two-user isolation.
 
 Never place a Supabase service-role key in browser code. Reserve elevated credentials for narrowly scoped, server-only administration when a user-scoped operation cannot meet the requirement.
 
@@ -116,7 +118,7 @@ Use explainable rules for merchant normalization and recurrence detection. Keep 
 
 ### Progressive persistence
 
-Phase 1 uses immutable fictional data so that interface work does not depend on credentials. Phase 2 replaces protected-page reads and preference writes with Supabase-backed server-only repositories. The public preview and pre-import exercise remain fictional. Later phases add mutation methods only through their owning DAL and RLS changes.
+Phase 1 used immutable fictional data. Phase 2 replaced protected reads and preference writes with Supabase-backed server-only repositories. Phase 3 added manual subscription mutations, and Phase 4 added fictional CSV processing and explicit review. Later phases add operations only through their owning DAL and database authorization changes.
 
 ### Replaceable product name
 

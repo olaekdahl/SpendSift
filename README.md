@@ -4,9 +4,9 @@ SubTrack is a mobile-friendly web application that helps individual consumers id
 
 ## Current status
 
-Phase 2 provides local email and password authentication, protected application routes, onboarding, private Supabase persistence, Row Level Security, stored preferences, and user-owned subscription reads. The public landing-page preview and import-review exercise use fictional information.
+Phase 4 provides local email and password authentication, protected application routes, onboarding, private Supabase persistence, manual subscription management, and a bounded CSV statement-import workflow with explicit review.
 
-Manual subscription writes begin in Phase 3. Real statement processing begins in Phase 4. Do not enter real financial information until the relevant security gate passes.
+Use only the downloadable fictional CSV sample. Real statements and production deployment remain blocked until trusted ingress, resource, monitoring, retention, and hosted security controls pass their deployment gates.
 
 ## Local setup
 
@@ -35,6 +35,10 @@ The local environment file is ignored by Git. It contains only the local public 
 7. Leave `SUPABASE_SECRET_KEY` unset. Normal application requests do not need it.
 
 Open [the local SubTrack site](http://localhost:3000) in your browser. Create an account, then open [local Mailpit](http://127.0.0.1:54324) to read the confirmation message. Mailpit does not send email outside your computer.
+
+After onboarding, open `/import`, select `public/samples/demo-statement.csv`, confirm the suggested mapping, and review each detected charge. The original bytes remain in bounded request memory only; SubTrack retains normalized records needed for duplicate checks and review.
+
+A future deployment must use a trusted reverse proxy that strips untrusted `X-Forwarded-For` and `X-Real-IP` headers and supplies the authoritative client address. Do not expose the importer directly to the internet without that boundary.
 
 To stop the local database services, run:
 
@@ -83,4 +87,4 @@ npx playwright install chromium
 
 ## Privacy notice
 
-SubTrack handles personal account settings locally in Phase 2 and handles sensitive financial information in later phases. The application must never store uploaded statement files permanently, log statement contents, or send financial data to an AI service. Detected subscriptions and savings estimates can be incomplete or inaccurate. You must review suggestions and confirm cancellations with each provider.
+SubTrack handles personal account settings and normalized fictional statement data locally. It does not store uploaded source files, log statement contents, or send financial data to an AI service. Detected subscriptions and savings estimates can be incomplete or inaccurate. You must review suggestions and confirm cancellations with each provider.

@@ -153,6 +153,7 @@ export type Database = {
           created_at: string;
           credit_column: string | null;
           date_column: string;
+          date_format: string;
           debit_column: string | null;
           description_column: string;
           id: string;
@@ -165,6 +166,7 @@ export type Database = {
           created_at?: string;
           credit_column?: string | null;
           date_column: string;
+          date_format?: string;
           debit_column?: string | null;
           description_column: string;
           id?: string;
@@ -177,6 +179,7 @@ export type Database = {
           created_at?: string;
           credit_column?: string | null;
           date_column?: string;
+          date_format?: string;
           debit_column?: string | null;
           description_column?: string;
           id?: string;
@@ -190,6 +193,81 @@ export type Database = {
             columns: ["statement_import_id", "user_id"];
             isOneToOne: false;
             referencedRelation: "statement_imports";
+            referencedColumns: ["id", "user_id"];
+          },
+        ];
+      };
+      import_suggestions: {
+        Row: {
+          amount_minor: number;
+          billing_frequency: Database["public"]["Enums"]["billing_frequency"];
+          confidence_score: number;
+          created_at: string;
+          currency: string;
+          decision: Database["public"]["Enums"]["import_suggestion_decision"];
+          display_name: string;
+          id: string;
+          next_billing_date: string;
+          normalized_merchant: string;
+          reason_code: string;
+          reason_summary: string;
+          start_date: string;
+          statement_import_id: string;
+          subscription_id: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          amount_minor: number;
+          billing_frequency: Database["public"]["Enums"]["billing_frequency"];
+          confidence_score: number;
+          created_at?: string;
+          currency: string;
+          decision?: Database["public"]["Enums"]["import_suggestion_decision"];
+          display_name: string;
+          id?: string;
+          next_billing_date: string;
+          normalized_merchant: string;
+          reason_code: string;
+          reason_summary: string;
+          start_date: string;
+          statement_import_id: string;
+          subscription_id?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          amount_minor?: number;
+          billing_frequency?: Database["public"]["Enums"]["billing_frequency"];
+          confidence_score?: number;
+          created_at?: string;
+          currency?: string;
+          decision?: Database["public"]["Enums"]["import_suggestion_decision"];
+          display_name?: string;
+          id?: string;
+          next_billing_date?: string;
+          normalized_merchant?: string;
+          reason_code?: string;
+          reason_summary?: string;
+          start_date?: string;
+          statement_import_id?: string;
+          subscription_id?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "import_suggestions_import_fk";
+            columns: ["statement_import_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "statement_imports";
+            referencedColumns: ["id", "user_id"];
+          },
+          {
+            foreignKeyName: "import_suggestions_subscription_fk";
+            columns: ["subscription_id", "user_id"];
+            isOneToOne: false;
+            referencedRelation: "subscriptions";
             referencedColumns: ["id", "user_id"];
           },
         ];
@@ -580,6 +658,18 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      approve_import_suggestion: {
+        Args: {
+          category: string;
+          expected_updated_at: string;
+          suggestion_id: string;
+        };
+        Returns: string;
+      };
+      begin_statement_import_attempt: {
+        Args: { network_sha256: string };
+        Returns: string;
+      };
       complete_onboarding: {
         Args: {
           locale: string;
@@ -589,6 +679,54 @@ export type Database = {
           renewal_reminders_enabled: boolean;
           time_zone: string;
           trial_reminders_enabled: boolean;
+        };
+        Returns: undefined;
+      };
+      create_statement_import: {
+        Args: {
+          attempt_id: string;
+          duration_bucket: string;
+          file_sha256: string;
+          file_size_bytes: number;
+          mapping: Json;
+          suggestions: Json;
+          transactions: Json;
+        };
+        Returns: string;
+      };
+      discard_statement_import: {
+        Args: { statement_import_id: string };
+        Returns: undefined;
+      };
+      finish_statement_import_attempt: {
+        Args: { attempt_id: string; safe_result_code: string };
+        Returns: undefined;
+      };
+      merge_import_suggestion: {
+        Args: {
+          expected_updated_at: string;
+          subscription_id: string;
+          suggestion_id: string;
+        };
+        Returns: undefined;
+      };
+      set_import_suggestion_decision: {
+        Args: {
+          decision: Database["public"]["Enums"]["import_suggestion_decision"];
+          expected_updated_at: string;
+          suggestion_id: string;
+        };
+        Returns: undefined;
+      };
+      update_import_suggestion: {
+        Args: {
+          amount_minor: number;
+          billing_frequency: Database["public"]["Enums"]["billing_frequency"];
+          display_name: string;
+          expected_updated_at: string;
+          next_billing_date: string;
+          start_date: string;
+          suggestion_id: string;
         };
         Returns: undefined;
       };
@@ -604,6 +742,8 @@ export type Database = {
         | "custom";
       import_status:
         "mapping" | "processing" | "review" | "completed" | "failed";
+      import_suggestion_decision:
+        "pending" | "approved" | "merged" | "rejected" | "deferred";
       reminder_status: "pending" | "read" | "dismissed";
       reminder_type:
         | "renewal"
@@ -759,6 +899,13 @@ export const Constants = {
         "custom",
       ],
       import_status: ["mapping", "processing", "review", "completed", "failed"],
+      import_suggestion_decision: [
+        "pending",
+        "approved",
+        "merged",
+        "rejected",
+        "deferred",
+      ],
       reminder_status: ["pending", "read", "dismissed"],
       reminder_type: [
         "renewal",

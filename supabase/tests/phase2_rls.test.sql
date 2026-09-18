@@ -94,6 +94,7 @@ select is(
         'statement_imports',
         'import_column_mappings',
         'merchant_aliases',
+        'import_suggestions',
         'subscription_price_history',
         'reminders',
         'budgets',
@@ -103,7 +104,7 @@ select is(
       ])
       and relation.relrowsecurity
   ),
-  12,
+  13,
   'RLS is enabled on every user-owned table'
 );
 
@@ -157,17 +158,13 @@ select ok(
       )
     )
     from unnest(array[
-      'transactions',
-      'statement_imports',
-      'import_column_mappings',
-      'merchant_aliases',
       'subscription_price_history',
       'reminders',
       'cancellation_guides',
       'audit_events'
     ]) as table_names(table_name)
   ),
-  'future feature tables expose no authenticated role grants'
+  'remaining future feature tables expose no authenticated role grants'
 );
 
 select ok(

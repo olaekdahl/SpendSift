@@ -55,3 +55,14 @@ export function getTrustedRequestOrigin(requestOrigin: string | null) {
     return configuredOrigin;
   }
 }
+
+export function isTrustedRequestOrigin(requestOrigin: string | null) {
+  if (!requestOrigin) return false;
+
+  try {
+    const { appUrl } = getSupabasePublicConfig();
+    return new URL(requestOrigin).origin === new URL(appUrl).origin;
+  } catch {
+    return false;
+  }
+}

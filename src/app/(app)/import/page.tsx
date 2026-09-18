@@ -1,24 +1,45 @@
 import type { Metadata } from "next";
-import { Download, FileCheck2, LockKeyhole, ScanSearch } from "lucide-react";
+import { Check, Download, FileCheck2, ScanSearch } from "lucide-react";
 
 import { PageHeader } from "@/components/page-header";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { APP_NAME } from "@/config/app";
-import { StatementReviewDemo } from "@/features/import/statement-review-demo";
+import { ImportReview } from "@/features/import/import-review";
+import { StatementImportUploader } from "@/features/import/statement-import-uploader";
+import { requireAuthenticatedUser } from "@/server/auth";
+import { getStatementImportForUser } from "@/server/dal/imports";
+import { getSubscriptionsForUser } from "@/server/dal/subscriptions";
 
 export const metadata: Metadata = {
   title: "Import",
 };
 
-export default function ImportPage() {
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export default async function ImportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ import?: string | string[] }>;
+}) {
+  const user = await requireAuthenticatedUser();
+  const requestedImport = (await searchParams).import;
+  const importId =
+    typeof requestedImport === "string" && uuidPattern.test(requestedImport)
+      ? requestedImport
+      : undefined;
+  const [statementImport, subscriptions] = await Promise.all([
+    getStatementImportForUser(user.id, importId),
+    getSubscriptionsForUser(user.id),
+  ]);
+  const reviewing = Boolean(statementImport);
+  const completed = statementImport?.status === "completed";
+
   return (
     <>
       <PageHeader
-        eyebrow="Fictional review exercise"
+        eyebrow="Private statement workspace"
         title="Statement import"
-        description={`Preview how ${APP_NAME} explains possible recurring charges before you approve anything. File processing starts in Phase 4.`}
+        description="Map a fictional CSV, review deterministic recurring-charge matches, and decide what becomes a subscription."
         action={
           <a
             href="/samples/demo-statement.csv"
@@ -31,53 +52,37 @@ export default function ImportPage() {
         }
       />
 
-      <Card className="mb-6 border-info/40 bg-info-soft p-5">
-        <div className="flex items-start gap-3">
-          <LockKeyhole
-            aria-hidden="true"
-            className="mt-0.5 size-5 shrink-0 text-info"
-          />
-          <div>
-            <h2 className="text-sm font-extrabold text-ink">
-              Your raw statement does not become a permanent file
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-muted">
-              The planned importer validates and parses the file, keeps only
-              normalized records needed for review, and discards the upload.
-              Never use real financial data in this Phase 1 demo.
-            </p>
-          </div>
-        </div>
-      </Card>
-
       <ol className="mb-7 grid gap-3 sm:grid-cols-3" aria-label="Import steps">
         {[
           {
-            icon: FileCheck2,
+            icon: reviewing ? Check : FileCheck2,
             step: "01",
             label: "Validate and map",
-            state: "Planned",
+            active: !reviewing,
+            done: reviewing,
           },
           {
-            icon: ScanSearch,
+            icon: reviewing ? Check : ScanSearch,
             step: "02",
             label: "Find patterns",
-            state: "Previewed",
+            active: false,
+            done: reviewing,
           },
           {
-            icon: FileCheck2,
+            icon: completed ? Check : FileCheck2,
             step: "03",
-            label: "Review every match",
-            state: "Try below",
+            label: completed ? "Review complete" : "Review every match",
+            active: reviewing && !completed,
+            done: completed,
           },
-        ].map(({ icon: Icon, step, label, state }, index) => (
+        ].map(({ icon: Icon, step, label, active, done }) => (
           <li
             key={step}
             className="flex items-center gap-3 border-b border-line pb-3"
           >
             <span
               className={
-                index === 2
+                active || done
                   ? "grid size-10 place-items-center rounded-md bg-brand text-white"
                   : "grid size-10 place-items-center rounded-md bg-surface text-muted"
               }
@@ -85,9 +90,7 @@ export default function ImportPage() {
               <Icon aria-hidden="true" className="size-4.5" />
             </span>
             <span>
-              <span className="block text-xs font-bold text-muted">
-                {step} · {state}
-              </span>
+              <span className="block text-xs font-bold text-muted">{step}</span>
               <span className="mt-0.5 block text-sm font-extrabold text-ink">
                 {label}
               </span>
@@ -96,13 +99,17 @@ export default function ImportPage() {
         ))}
       </ol>
 
-      <div className="mb-4 flex items-center gap-2">
-        <h2 className="text-lg font-extrabold text-ink">
-          Possible recurring charges
-        </h2>
-        <Badge tone="warning">3 to review</Badge>
-      </div>
-      <StatementReviewDemo />
+      {statementImport ? (
+        <ImportReview
+          statementImport={statementImport}
+          mergeTargets={subscriptions.map((subscription) => ({
+            id: subscription.id,
+            displayName: subscription.displayName,
+          }))}
+        />
+      ) : (
+        <StatementImportUploader />
+      )}
     </>
   );
 }

@@ -4,17 +4,17 @@ Audit date: 2026-09-17
 
 ## Executive summary
 
-The current local Phase 2 application has a **Low** overall security risk. It implements email/password authentication, private Supabase persistence, verified server sessions, minimal data-transfer objects, explicit database grants, and Row Level Security. This assessment found no evidence of a currently reachable Critical or High vulnerability, no exposed credential, and no known vulnerability reported for the locked npm dependency tree.
+The current local Phase 4 application has a **Low** overall security risk for fictional data. It implements verified server sessions, private Supabase persistence, manual subscription management, and a bounded CSV import and review pipeline. This assessment found no evidence of a currently reachable Critical or High vulnerability, no exposed credential, and no known vulnerability reported for the locked npm dependency tree.
 
-The repository can proceed to local Phase 3 implementation. Production deployment remains blocked, and the future statement-upload pipeline remains a High-severity design gate that must be implemented and tested before Phase 4 accepts a file.
+The repository can proceed to local Phase 5 implementation with fictional data. Production deployment and real financial statements remain blocked pending trusted ingress, resource, monitoring, retention, and hosted-infrastructure verification.
 
 The assessment tracks 11 original findings. Seven are remediated for the current local application; four future or deployment items remain open:
 
 | Severity      | Open | Remediated |
 | ------------- | ---: | ---------: |
 | Critical      |    0 |          0 |
-| High          |    1 |          3 |
-| Medium        |    2 |          2 |
+| High          |    0 |          4 |
+| Medium        |    1 |          3 |
 | Low           |    0 |          1 |
 | Informational |    1 |          1 |
 
@@ -39,9 +39,19 @@ Phase 3 manual subscription management completed locally with no confirmed explo
 
 The checkpoint remediated one defense-in-depth gap by enforcing `next_billing_date >= start_date` in PostgreSQL in addition to application validation. Seventy pgTAP assertions and 38 desktop/mobile browser checks pass. Phase 4 may proceed only with fictional CSV files under `PHASE-4-SECURITY-GATE.md`.
 
+## Phase 4 checkpoint update
+
+Phase 4 statement import completed locally with no confirmed exploitable vulnerability. The implementation verifies identity and exact origin before reading a bounded request body, parses only UTF-8 CSV through a maintained parser, applies fixed structural limits, and keeps source bytes out of storage and logs.
+
+User-scoped fingerprints, unique constraints, advisory locks, opaque permits, account and network-aware rate limits, one-active-import enforcement, controlled database functions, owner-only reads, optimistic review actions, and content-free audit events protect normalized records. Independent review gaps for endpoint rate limiting, sequential deduplication, cross-user fingerprint scope, and audit privacy received browser coverage. PostgreSQL also bounds direct RPC JSON payloads and prunes expired attempts.
+
+Current evidence includes 108 unit and component tests, 102 pgTAP assertions, 50 desktop/mobile browser scenarios, a production build and cache-isolation check, zero npm advisories, a valid dependency tree, and a clean Git-visible Gitleaks scan.
+
+**Phase 5 recommendation:** Conditional go for local insights implementation with fictional data. The trusted-proxy address boundary, hosting memory behavior, ingress controls, monitoring, retention, and production cache behavior remain deployment blockers.
+
 ## Scope
 
-This assessment covers the repository content available at `/home/ola/SpendSift` on 2026-09-17, including the local Phase 2 implementation:
+This assessment covers the repository content available at `/home/ola/SpendSift` on 2026-09-17, including the local Phase 4 implementation:
 
 - Next.js App Router routes and layouts under `src/app`.
 - Shared and feature components under `src/components` and `src/features`.
@@ -77,7 +87,9 @@ The review references:
 - [Supabase server-side authentication for Next.js](https://supabase.com/docs/guides/auth/server-side/nextjs).
 - [Supabase Row Level Security guidance](https://supabase.com/docs/guides/database/postgres/row-level-security).
 
-## Current architecture and security posture
+## Baseline architecture and security posture
+
+The sections below preserve the original Phase 1 audit snapshot. Current implementation evidence appears in the phase checkpoint updates above, `docs/architecture.md`, and `docs/security/checkpoints/`.
 
 ### Routes and rendering
 
@@ -269,9 +281,9 @@ See `THREAT-MODEL.md` for current and planned data-flow diagrams.
 - **Verification:** Inspect production headers and route manifests; test two users through a caching proxy; prove that no user-specific response or `Set-Cookie` can be replayed to another user; inspect built output for private fixtures.
 - **Blocking phase:** Phase 2.
 
-### SEC-007: Security logging and redaction policy is incomplete
+### SEC-007: Security logging and redaction policy was incomplete
 
-- **Status:** Design gap
+- **Status:** Remediated for current local operations; deployment monitoring remains
 - **Severity:** Medium
 - **Confidence:** High
 - **CWE:** CWE-117, Improper Output Neutralization for Logs; CWE-532, Insertion of Sensitive Information into Log File; CWE-778, Insufficient Logging
@@ -285,10 +297,11 @@ See `THREAT-MODEL.md` for current and planned data-flow diagrams.
 - **Recommended remediation:** Define structured event names and allowlisted fields for authentication, authorization failure, import lifecycle, export, deletion, key configuration changes, and administrative access. Use opaque object IDs, safe reason codes, interaction IDs, UTC timestamps, and actor IDs. Exclude tokens, cookies, emails where unnecessary, filenames, merchant text, transaction amounts/descriptions, request/response bodies, connection strings, and stack traces from user-facing output. Sanitize CR/LF and delimiters. Define retention, access, integrity, alerting, and failure behavior.
 - **Verification:** Unit-test redaction and log-injection handling; integration-test required success and failure events; scan captured logs to prove prohibited values never appear; test logger failure without exposing details or bypassing controls.
 - **Blocking phase:** Define before Phase 2; fully implement before Phase 4.
+- **Remediation evidence:** Import success, failure, and review operations write allowlisted event names, opaque IDs, safe reason codes, counts, and duration buckets. Direct client audit-table access remains denied. pgTAP and browser assertions prove merchant descriptions, filenames, and amounts do not enter event details.
 
-### SEC-008: Statement-upload security limits and lifecycle are not enforceable yet
+### SEC-008: Statement-upload security limits and lifecycle were not enforceable
 
-- **Status:** Design gap
+- **Status:** Remediated for local fictional CSV use; production verification remains
 - **Severity:** High
 - **Confidence:** High
 - **CWE:** CWE-434, Unrestricted Upload of File with Dangerous Type; CWE-770, Allocation of Resources Without Limits or Throttling; CWE-1236, Improper Neutralization of Formula Elements in a CSV File
@@ -302,6 +315,8 @@ See `THREAT-MODEL.md` for current and planned data-flow diagrams.
 - **Recommended remediation:** Approve the explicit pipeline and limits in `THREAT-MODEL.md` and `SECURITY-REMEDIATION-PLAN.md`. Authenticate before reading a body; rate-limit by account and network signal; stream with a hard byte cap; ignore the supplied path; validate extension, MIME as a hint, encoding, null/control bytes, delimiter, headers, row shape, and bounded dimensions; parse with a maintained library under time and memory limits; normalize Unicode; validate every canonical field; keep raw data in bounded private ephemeral storage; persist only necessary normalized records; bind import hashes and records to the verified user; require approval; delete raw bytes in success and failure paths; and append a redacted audit event. Treat antivirus as limited defense because CSV has no reliable magic signature and privacy rules may prohibit third-party scanning. Escape formula-capable exports at export time for the intended spreadsheet target, including `=`, `+`, `-`, `@`, tab, CR, LF, and full-width variants.
 - **Verification:** Unit tests, parser fuzzing, resource-limit tests, duplicate/idempotency tests, cross-user tests, cleanup tests for every failure path, log scans, malicious filename and encoding fixtures, formula-injection fixtures, and end-to-end approval tests.
 - **Blocking phase:** Security design approval before Phase 2; implementation before Phase 4 accepts any file.
+- **Remediation evidence:** The authenticated same-origin Route Handler enforces the approved 5 MiB, 10,000-row, 64-column, 64 KiB line, and 8 KiB field limits before bounded persistence. UTF-8, header, row-shape, date, amount, filename, and MIME checks pass. User-scoped fingerprints, one-active-import locking, account and network throttles, atomic controlled functions, direct-RPC payload caps, explicit review, and memory-only raw bytes pass unit, database, and browser tests.
+- **Residual work:** A production-equivalent ingress must set authoritative forwarding headers and enforce edge limits. Hosting memory behavior, load limits, monitoring, and retention require deployment-owner verification. Real financial statements remain prohibited.
 
 ### SEC-009: Sensitive-data retention and deletion rules are incomplete
 
@@ -354,18 +369,15 @@ See `THREAT-MODEL.md` for current and planned data-flow diagrams.
 - **Verification:** Clean secret-scan results for the working tree and history, plus repository-policy evidence.
 - **Blocking phase:** Before placing Phase 2 credentials in the repository environment.
 
-## Design gaps summary
+## Remaining design gaps summary
 
-The following controls do not exist yet and must not be mistaken for Phase 1 vulnerabilities:
+The following controls remain future or deployment work and are not current local vulnerabilities:
 
-- Authenticated route protection and secure session lifecycle.
-- Per-operation server authorization and tested database RLS.
-- A `server-only` DAL and minimal DTOs.
-- Protected response cache rules.
-- Import limits, parser isolation, raw-data cleanup, and export formula controls.
-- Structured security logging, redaction, alerting, and audit integrity.
-- Data retention, export, deletion, and support-access rules.
-- Tested production security headers.
+- Hosted TLS, HSTS, CSP hardening, CDN, cache, and trusted-proxy verification.
+- Production import memory, load, queue, ingress, monitoring, alerting, and retention evidence.
+- Account export, recent-authenticated deletion, backup expiry, and support-access rules.
+- Complete security-event operations, administrator access review, and tamper monitoring.
+- CI provenance, protected-branch, and continuous secret-scanning policy.
 
 ## Dependency findings
 

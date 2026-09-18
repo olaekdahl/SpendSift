@@ -71,8 +71,8 @@ Status: **Conditional go for local Phase 3 implementation; production deployment
 - [x] Verify anonymous denial and two-user known-ID isolation.
 - [x] Verify protected production responses are private and non-cacheable.
 - [x] Keep subscription writes denied until Phase 3 policies and DAL mutations land together.
-- [ ] Complete all Phase 3 mutation and product-semantic checks.
-- [ ] Run the Phase 3-to-Phase 4 security checkpoint before accepting files.
+- [x] Complete all Phase 3 mutation and product-semantic checks.
+- [x] Run the Phase 3-to-Phase 4 security checkpoint before accepting files.
 
 ## Phase 3: Manual subscription management
 
@@ -94,21 +94,35 @@ Status: **Conditional go for fictional local CSV implementation only.** See `doc
 - [x] Verify stale browser writes do not overwrite newer database changes.
 - [x] Add database-level URL and date relationship constraints.
 - [x] Approve bounded local CSV limits and lifecycle requirements.
-- [ ] Complete every Phase 4 receive, parse, review, persistence, cleanup, and logging control.
-- [ ] Run the Phase 4-to-Phase 5 security checkpoint before implementing insights.
+- [x] Complete every Phase 4 receive, parse, review, persistence, cleanup, and logging control.
+- [x] Run the Phase 4-to-Phase 5 security checkpoint before implementing insights.
 
 ## Phase 4: Statement import
 
 Goal: Turn a fictional CSV statement into reviewable recurring-charge suggestions without retaining the original file.
 
-- [ ] Implement the provider-neutral importer contract and CSV adapter.
-- [ ] Add safe upload validation, column mapping, and preview.
-- [ ] Add merchant normalization with extensive unit tests.
-- [ ] Add deterministic recurrence detection, confidence scores, and reasons.
-- [ ] Implement edit, reject, merge, defer, and approval actions.
-- [ ] Prevent duplicate imports and duplicate transactions.
-- [ ] Add downloadable fictional CSV samples.
-- [ ] Add integration and Playwright coverage for the import journey.
+- [x] Implement the provider-neutral importer contract and CSV adapter.
+- [x] Add safe upload validation, column mapping, and preview.
+- [x] Add merchant normalization with extensive unit tests.
+- [x] Add deterministic recurrence detection, confidence scores, and reasons.
+- [x] Implement edit, reject, merge, defer, and approval actions.
+- [x] Prevent duplicate imports and duplicate transactions.
+- [x] Add downloadable fictional CSV samples.
+- [x] Add integration and Playwright coverage for the import journey.
+
+## Security gate before Phase 5
+
+Status: **Conditional go for local insights implementation with fictional data.** See `docs/security/checkpoints/phase-4-to-phase-5-audit.md` and `docs/security/PHASE-5-SECURITY-GATE.md`.
+
+- [x] Audit the upload, parser, mapping, normalization, detection, persistence, review, and logging boundaries.
+- [x] Verify authentication before body reads and exact same-origin enforcement.
+- [x] Verify file, encoding, row, column, line, field, and direct-RPC resource limits.
+- [x] Verify account and network throttling plus one-active-import concurrency control.
+- [x] Verify user-scoped import and transaction deduplication.
+- [x] Verify owner, anonymous, and known-ID cross-user isolation.
+- [x] Verify audit-detail allowlists and the absence of source filenames and statement content.
+- [ ] Complete every Phase 5 price-history, overlap, savings, calendar, and reminder control.
+- [ ] Run the Phase 5-to-Phase 6 checkpoint before implementing cancellation and privacy workflows.
 
 ## Phase 5: Insights
 

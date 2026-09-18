@@ -12,13 +12,19 @@ import {
 } from "./support/supabase";
 
 function tamperSessionCookie(value: string) {
+  function mutate(valueToChange: string) {
+    const index = Math.max(0, Math.floor(valueToChange.length / 2));
+    const replacement = valueToChange[index] === "a" ? "b" : "a";
+    return `${valueToChange.slice(0, index)}${replacement}${valueToChange.slice(index + 1)}`;
+  }
+
   if (!value.startsWith("base64-")) {
-    return `${value.slice(0, -1)}${value.endsWith("a") ? "b" : "a"}`;
+    return mutate(value);
   }
 
   const session = JSON.parse(
     Buffer.from(value.slice("base64-".length), "base64url").toString("utf8"),
-  ) as { access_token?: string };
+  ) as { access_token?: string; refresh_token?: string };
   const accessToken = session.access_token;
 
   if (!accessToken) {
@@ -27,7 +33,17 @@ function tamperSessionCookie(value: string) {
     );
   }
 
-  session.access_token = `${accessToken.slice(0, -1)}${accessToken.endsWith("a") ? "b" : "a"}`;
+  const parts = accessToken.split(".");
+  if (parts.length !== 3) {
+    throw new Error(
+      "Authenticated test cookie contained an invalid access token",
+    );
+  }
+  parts[2] = mutate(parts[2]);
+  session.access_token = parts.join(".");
+  if (session.refresh_token) {
+    session.refresh_token = mutate(session.refresh_token);
+  }
   return `base64-${Buffer.from(JSON.stringify(session)).toString("base64url")}`;
 }
 
