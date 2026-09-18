@@ -6,6 +6,7 @@ import {
   CreditCard,
   ExternalLink,
   Globe2,
+  Pencil,
   ReceiptText,
 } from "lucide-react";
 import Link from "next/link";
@@ -24,6 +25,7 @@ import {
   frequencyLabels,
 } from "@/features/subscriptions/presentation";
 import { safeExternalUrlSchema } from "@/features/subscriptions/schema";
+import { SubscriptionDangerActions } from "@/features/subscriptions/subscription-danger-actions";
 import { SubscriptionStatusBadge } from "@/features/subscriptions/status-badge";
 import { requireAuthenticatedUser } from "@/server/auth";
 import { getSubscriptionForUser } from "@/server/dal/subscriptions";
@@ -52,6 +54,15 @@ export default async function SubscriptionDetailPage({
         hostname: new URL(parsedWebsite.data).hostname,
       }
     : null;
+  const parsedCancellationUrl = subscription.cancellationUrl
+    ? safeExternalUrlSchema.safeParse(subscription.cancellationUrl)
+    : null;
+  const cancellationUrl = parsedCancellationUrl?.success
+    ? {
+        href: parsedCancellationUrl.data,
+        hostname: new URL(parsedCancellationUrl.data).hostname,
+      }
+    : null;
 
   return (
     <>
@@ -67,7 +78,18 @@ export default async function SubscriptionDetailPage({
         eyebrow={subscription.category}
         title={subscription.displayName}
         description={`Tracked from ${subscription.source === "manual" ? "manual entry" : "a reviewed statement import"}.`}
-        action={<SubscriptionStatusBadge status={subscription.status} />}
+        action={
+          <div className="flex items-center gap-2">
+            <SubscriptionStatusBadge status={subscription.status} />
+            <Link
+              href={`/subscriptions/${subscription.id}/edit`}
+              className={buttonVariants({ variant: "secondary" })}
+            >
+              <Pencil aria-hidden="true" className="size-4" />
+              Edit
+            </Link>
+          </div>
+        }
       />
 
       <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
@@ -101,7 +123,7 @@ export default async function SubscriptionDetailPage({
               {
                 icon: CreditCard,
                 term: "Payment method",
-                detail: subscription.paymentMethodNickname,
+                detail: subscription.paymentMethodNickname ?? "Not specified",
               },
               {
                 icon: ReceiptText,
@@ -151,7 +173,25 @@ export default async function SubscriptionDetailPage({
                   cancel the service. Cancellation is complete only when the
                   provider confirms it.
                 </p>
-                {website ? (
+                {subscription.cancellationInstructions ? (
+                  <p className="mt-3 text-sm leading-6 whitespace-pre-line text-ink">
+                    {subscription.cancellationInstructions}
+                  </p>
+                ) : null}
+                {cancellationUrl ? (
+                  <a
+                    href={cancellationUrl.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonVariants({
+                      variant: "secondary",
+                      className: "mt-4",
+                    })}
+                  >
+                    Open {cancellationUrl.hostname} cancellation page
+                    <ExternalLink aria-hidden="true" className="size-4" />
+                  </a>
+                ) : website ? (
                   <a
                     href={website.href}
                     target="_blank"
@@ -168,6 +208,11 @@ export default async function SubscriptionDetailPage({
               </div>
             </div>
           </Card>
+
+          <SubscriptionDangerActions
+            id={subscription.id}
+            updatedAt={subscription.updatedAt}
+          />
         </div>
       </div>
     </>

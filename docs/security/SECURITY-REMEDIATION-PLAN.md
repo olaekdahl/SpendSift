@@ -59,6 +59,18 @@ The following design work is nevertheless an immediate **no-go gate** for Phase 
 | SEC-007 | Implement one structured security-event interface for authentication, authorization failure, export, deletion, and configuration changes. Use opaque IDs and safe codes only.                                                    | P1       | Approved event catalog and audit table                       | Medium | Unit and integration tests plus captured-log scans for tokens, cookies, emails, financial values, and CR/LF injection | Phase 2 completion                                                     |
 | SEC-009 | Implement approved account export, deletion sequencing, backup expiry documentation, and least-privilege support access. Store only fields with an approved purpose.                                                             | P1       | Data inventory, schema, backup design, and account lifecycle | Large  | Export completeness tests; primary-store and backup-restoration deletion exercises; access review                     | Phase 2 completion where applicable; remaining controls before Phase 6 |
 
+## Completed Phase 3 controls
+
+- Subscription ownership comes only from verified claims.
+- Strict form schemas reject unknown, duplicate, malformed, and protected fields.
+- Money converts to integer minor units before persistence.
+- Column grants exclude ownership, provenance, confidence, identifiers, and audit timestamps.
+- Owner RLS policies independently enforce insert, update, and delete.
+- Optimistic concurrency rejects stale edits, archives, and deletes.
+- URL and date relationship constraints protect direct Data API writes.
+- Archive, local delete, cancelled status, and provider cancellation remain distinct.
+- Mutation audit events contain no financial details.
+
 ## Required before accepting real statement files
 
 | Finding | Exact task                                                                                                                                                                                      | Priority | Dependencies                                                            | Effort | Verification method                                                                                                                       | Blocking phase                                                 |

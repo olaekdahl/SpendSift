@@ -19,7 +19,7 @@ export function DashboardEmptyState() {
           becomes a confirmed subscription without your approval.
         </p>
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-          <Link href="/subscriptions" className={buttonVariants()}>
+          <Link href="/subscriptions/new" className={buttonVariants()}>
             <Plus aria-hidden="true" className="size-4" />
             Add manually
           </Link>

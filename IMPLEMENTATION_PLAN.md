@@ -78,11 +78,24 @@ Status: **Conditional go for local Phase 3 implementation; production deployment
 
 Goal: Let an authenticated user manage the complete life cycle of a subscription record.
 
-- [ ] Implement validated create, read, edit, archive, and delete operations.
-- [ ] Support every required billing frequency and status.
-- [ ] Add monthly and annual cost conversions and renewal calculations.
-- [ ] Add clear provider-cancellation boundaries.
-- [ ] Add focused unit, integration, and component tests.
+- [x] Implement validated create, read, edit, archive, and delete operations.
+- [x] Support every required billing frequency and status.
+- [x] Add monthly and annual cost conversions and renewal calculations.
+- [x] Add clear provider-cancellation boundaries.
+- [x] Add focused unit, database, integration, component, and browser tests.
+
+## Security gate before Phase 4
+
+Status: **Conditional go for fictional local CSV implementation only.** See `docs/security/checkpoints/phase-3-to-phase-4-audit.md` and `docs/security/PHASE-4-SECURITY-GATE.md`.
+
+- [x] Audit Phase 3 mutation validation, DAL, grants, RLS, URLs, concurrency, and deletion semantics.
+- [x] Verify strict unknown and duplicate field rejection.
+- [x] Verify owner CRUD, cross-user denial, protected columns, and redacted audit events.
+- [x] Verify stale browser writes do not overwrite newer database changes.
+- [x] Add database-level URL and date relationship constraints.
+- [x] Approve bounded local CSV limits and lifecycle requirements.
+- [ ] Complete every Phase 4 receive, parse, review, persistence, cleanup, and logging control.
+- [ ] Run the Phase 4-to-Phase 5 security checkpoint before implementing insights.
 
 ## Phase 4: Statement import
 

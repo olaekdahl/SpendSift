@@ -1,7 +1,7 @@
 begin;
 set local search_path = public, extensions;
 
-select plan(49);
+select plan(48);
 
 delete from auth.users
 where id in (
@@ -140,10 +140,11 @@ select ok(
 );
 
 select ok(
-  not has_table_privilege('authenticated', 'public.subscriptions', 'insert')
-  and not has_table_privilege('authenticated', 'public.subscriptions', 'update')
-  and not has_table_privilege('authenticated', 'public.subscriptions', 'delete'),
-  'subscription writes remain closed until Phase 3'
+  has_column_privilege('authenticated', 'public.subscriptions', 'display_name', 'insert,update')
+  and has_table_privilege('authenticated', 'public.subscriptions', 'delete')
+  and not has_column_privilege('authenticated', 'public.subscriptions', 'source', 'insert,update')
+  and not has_column_privilege('authenticated', 'public.subscriptions', 'user_id', 'update'),
+  'subscription grants expose editable columns but protect provenance and ownership'
 );
 
 select ok(
@@ -430,14 +431,7 @@ select throws_ok(
     )$$,
   '42501',
   null,
-  'subscription insert is not granted before Phase 3'
-);
-
-select throws_ok(
-  $$update public.subscriptions set display_name = 'Changed'$$,
-  '42501',
-  null,
-  'subscription update is not granted before Phase 3'
+  'manual inserts cannot assign protected source metadata'
 );
 
 select ok(

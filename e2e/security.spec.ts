@@ -87,3 +87,32 @@ test("renders only a validated HTTPS provider link", async ({ page }) => {
     await deleteTestAccount(account);
   }
 });
+
+test("does not serialize protected fields to the subscription editor", async ({
+  page,
+}) => {
+  const account = await createTestAccount({
+    subscriptions: [northstarSubscription],
+  });
+
+  try {
+    await signInTestAccount(page, account);
+    const admin = (await import("./support/supabase")).getAdminClient();
+    const { data: subscription } = await admin
+      .from("subscriptions")
+      .select("id")
+      .eq("user_id", account.id)
+      .single();
+    const response = await page.goto(`/subscriptions/${subscription!.id}/edit`);
+    const body = await response?.text();
+
+    expect(response?.ok()).toBe(true);
+    expect(body).not.toContain(account.id);
+    expect(body).not.toContain('"source"');
+    expect(body).not.toContain('"sourceImportId"');
+    expect(body).not.toContain('"confidenceScore"');
+    expect(body).not.toContain('"createdAt"');
+  } finally {
+    await deleteTestAccount(account);
+  }
+});

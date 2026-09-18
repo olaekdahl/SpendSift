@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FileUp } from "lucide-react";
+import { FileUp, Plus } from "lucide-react";
 import Link from "next/link";
 
 import { PageHeader } from "@/components/page-header";
@@ -22,12 +22,21 @@ export default async function SubscriptionsPage() {
       <PageHeader
         eyebrow="Your recurring services"
         title="Subscriptions"
-        description="Review current plans, renewal dates, and monthly equivalents from fictional demo data."
+        description="Review current plans, renewal dates, and monthly equivalents."
         action={
-          <Link href="/import" className={buttonVariants()}>
-            <FileUp aria-hidden="true" className="size-4" />
-            Import statement
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/import"
+              className={buttonVariants({ variant: "secondary" })}
+            >
+              <FileUp aria-hidden="true" className="size-4" />
+              Import statement
+            </Link>
+            <Link href="/subscriptions/new" className={buttonVariants()}>
+              <Plus aria-hidden="true" className="size-4" />
+              Add subscription
+            </Link>
+          </div>
         }
       />
       <SubscriptionExplorer

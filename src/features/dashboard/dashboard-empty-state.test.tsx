@@ -9,7 +9,7 @@ describe("DashboardEmptyState", () => {
 
     expect(screen.getByRole("link", { name: "Add manually" })).toHaveAttribute(
       "href",
-      "/subscriptions",
+      "/subscriptions/new",
     );
     expect(
       screen.getByRole("link", { name: "Review an import" }),

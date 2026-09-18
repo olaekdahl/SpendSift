@@ -81,7 +81,7 @@ export const subscriptionSchema = z.object({
   merchantName: z.string().min(1),
   displayName: z.string().min(1),
   category: z.enum(subscriptionCategories),
-  amountMinor: z.number().int().nonnegative(),
+  amountMinor: z.number().int().positive(),
   currency: z.string().length(3),
   frequency: z.enum(billingFrequencies),
   customIntervalDays: z.number().int().positive().optional(),
@@ -89,14 +89,26 @@ export const subscriptionSchema = z.object({
   startDate: isoDate,
   trialEndDate: isoDate.optional(),
   status: z.enum(subscriptionStatuses),
-  paymentMethodNickname: z.string().min(1),
+  paymentMethodNickname: z.string().min(1).optional(),
   website: safeExternalUrlSchema.optional(),
+  cancellationUrl: safeExternalUrlSchema.optional(),
+  cancellationInstructions: z.string().max(4000).optional(),
+  notes: z.string().max(4000).optional(),
+  reminderLeadDays: z.number().int().min(0).max(365).default(7),
   source: z.enum(["manual", "statement_import"]),
+  confidenceScore: z.number().int().min(0).max(100).optional(),
   previousAmountMinor: z.number().int().nonnegative().optional(),
   savingsCandidate: z.boolean(),
   brandColor: z.string().regex(/^#[0-9a-f]{6}$/i),
+  updatedAt: z.iso.datetime({ offset: true }).optional(),
+  archivedAt: z.iso.datetime({ offset: true }).optional(),
+});
+
+export const persistedSubscriptionSchema = subscriptionSchema.extend({
+  updatedAt: z.iso.datetime({ offset: true }),
 });
 
 export type Subscription = z.infer<typeof subscriptionSchema>;
+export type PersistedSubscription = z.infer<typeof persistedSubscriptionSchema>;
 export type SubscriptionCategory = Subscription["category"];
 export type SubscriptionStatus = Subscription["status"];

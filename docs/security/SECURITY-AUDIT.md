@@ -33,6 +33,12 @@ The following baseline findings are remediated for the current application:
 
 **Phase 3 recommendation:** Conditional go for local implementation. Subscription writes remain denied until Phase 3 adds mutation-specific DAL methods, column grants, policies, and tests. Production deployment remains no-go pending hosted infrastructure and deployment-owner review.
 
+## Phase 3 checkpoint update
+
+Phase 3 manual subscription management completed locally with no confirmed exploitable vulnerability. Strict Server Action schemas, a server-only mutation DAL, column-level grants, owner RLS, optimistic locking, database constraints, redacted audit triggers, and browser DTO allowlists protect create, edit, archive, and local delete operations.
+
+The checkpoint remediated one defense-in-depth gap by enforcing `next_billing_date >= start_date` in PostgreSQL in addition to application validation. Seventy pgTAP assertions and 38 desktop/mobile browser checks pass. Phase 4 may proceed only with fictional CSV files under `PHASE-4-SECURITY-GATE.md`.
+
 ## Scope
 
 This assessment covers the repository content available at `/home/ola/SpendSift` on 2026-09-17, including the local Phase 2 implementation:
