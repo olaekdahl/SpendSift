@@ -166,9 +166,10 @@ test("rejects a suggestion and removes its normalized transactions", async ({
       name: "fictional.csv",
       mimeType: "text/csv",
       buffer: Buffer.from(
-        "Date,Description,Amount\n2026-07-01,HARBOR FITNESS 1001,-24.00\n2026-08-01,HARBOR FITNESS 1002,-24.00\n",
+        "Date,Description,Amount\n7/1/2026,HARBOR FITNESS 1001,-24.00\n8/1/2026,HARBOR FITNESS 1002,-24.00\n",
       ),
     });
+    await expect(page.getByLabel("Date format")).toHaveValue("month_first");
     await processSelectedFile(page);
 
     await page

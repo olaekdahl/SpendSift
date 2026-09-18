@@ -45,3 +45,18 @@ export const importColumnMappingSchema = z
   });
 
 export type ImportColumnMapping = z.infer<typeof importColumnMappingSchema>;
+
+export function detectDateFormat(
+  values: readonly string[],
+): ImportColumnMapping["dateFormat"] {
+  const populatedValues = values.map((value) => value.trim()).filter(Boolean);
+
+  if (
+    populatedValues.length > 0 &&
+    populatedValues.every((value) => /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value))
+  ) {
+    return "month_first";
+  }
+
+  return "iso";
+}

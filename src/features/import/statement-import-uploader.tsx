@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 import { csvStatementImporter } from "./importer";
 import { MAX_CSV_BYTES } from "./limits";
-import type { ImportColumnMapping } from "./mapping-schema";
+import { detectDateFormat, type ImportColumnMapping } from "./mapping-schema";
 
 const inputClassName =
   "h-11 w-full rounded-md border border-line bg-surface-raised px-3 text-sm text-ink";
@@ -30,6 +30,8 @@ const errorMessages: Record<string, string> = {
   INVALID_ENCODING: "Save the CSV as UTF-8, then try again.",
   INVALID_CSV: "The CSV structure or values are not supported.",
   INVALID_MAPPING: "Check each mapped column and try again.",
+  INVALID_DATE: "Check the selected date column and date format.",
+  INVALID_AMOUNT: "Check the selected amount, debit, and credit columns.",
   DUPLICATE_IMPORT: "This statement was already imported.",
   DUPLICATE_TRANSACTION:
     "The file contains a transaction already retained for this account.",
@@ -59,7 +61,10 @@ function findColumn(headers: string[], candidates: string[]) {
   );
 }
 
-function initialMapping(headers: string[]): ImportColumnMapping {
+function initialMapping(
+  headers: string[],
+  previewRows: string[][],
+): ImportColumnMapping {
   const amountColumn = headers.find((header) =>
     ["amount", "transaction amount", "value"].includes(normalized(header)),
   );
@@ -70,19 +75,24 @@ function initialMapping(headers: string[]): ImportColumnMapping {
     ["credit", "deposit", "refund"].includes(normalized(header)),
   );
 
+  const dateColumn = findColumn(headers, [
+    "date",
+    "posted date",
+    "transaction date",
+  ]);
+  const dateColumnIndex = headers.indexOf(dateColumn);
+
   return {
-    dateColumn: findColumn(headers, [
-      "date",
-      "posted date",
-      "transaction date",
-    ]),
+    dateColumn,
     descriptionColumn: findColumn(headers, ["description", "merchant", "memo"]),
     amountColumn:
       amountColumn ??
       (debitColumn || creditColumn ? null : (headers[2] ?? null)),
     debitColumn: amountColumn ? null : (debitColumn ?? null),
     creditColumn: amountColumn ? null : (creditColumn ?? null),
-    dateFormat: "iso",
+    dateFormat: detectDateFormat(
+      previewRows.map((row) => row[dateColumnIndex] ?? ""),
+    ),
   };
 }
 
@@ -120,7 +130,10 @@ export function StatementImportUploader() {
       const inspection = csvStatementImporter.inspect(
         new Uint8Array(await selected.arrayBuffer()),
       );
-      const nextMapping = initialMapping(inspection.headers);
+      const nextMapping = initialMapping(
+        inspection.headers,
+        inspection.preview,
+      );
       setFile(selected);
       setPreview({ headers: inspection.headers, rows: inspection.preview });
       setMapping(nextMapping);
@@ -183,6 +196,7 @@ export function StatementImportUploader() {
     key: Key,
     value: ImportColumnMapping[Key],
   ) {
+    setError(null);
     setMapping((current) => (current ? { ...current, [key]: value } : current));
   }
 
@@ -360,6 +374,7 @@ export function StatementImportUploader() {
                       )}
                       onClick={() => {
                         const mode = value as typeof amountMode;
+                        setError(null);
                         setAmountMode(mode);
                         setMapping((current) =>
                           current

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { importColumnMappingSchema } from "./mapping-schema";
+import { detectDateFormat, importColumnMappingSchema } from "./mapping-schema";
 
 const mapping = {
   dateColumn: "Date",
@@ -12,6 +12,19 @@ const mapping = {
 };
 
 describe("import column mapping", () => {
+  it("detects ISO dates from the preview", () => {
+    expect(detectDateFormat(["2026-06-21", "2026-07-21"])).toBe("iso");
+  });
+
+  it("detects month-first dates from the preview", () => {
+    expect(detectDateFormat(["6/21/2026", "07/21/2026"])).toBe("month_first");
+  });
+
+  it("defaults ambiguous or mixed previews to the visible ISO option", () => {
+    expect(detectDateFormat([])).toBe("iso");
+    expect(detectDateFormat(["2026-06-21", "7/21/2026"])).toBe("iso");
+  });
+
   it("accepts one signed amount column", () => {
     expect(importColumnMappingSchema.safeParse(mapping).success).toBe(true);
   });

@@ -43,6 +43,8 @@ type PublicImportErrorCode =
   | "INVALID_ENCODING"
   | "INVALID_CSV"
   | "INVALID_MAPPING"
+  | "INVALID_DATE"
+  | "INVALID_AMOUNT"
   | "DUPLICATE_IMPORT"
   | "DUPLICATE_TRANSACTION"
   | "ACTIVE_IMPORT_EXISTS"
@@ -188,6 +190,12 @@ function publicError(error: unknown) {
     }
     if (error.code === "INVALID_MAPPING") {
       return new ImportRequestError("INVALID_MAPPING", 400);
+    }
+    if (error.code === "INVALID_DATE") {
+      return new ImportRequestError("INVALID_DATE", 400);
+    }
+    if (error.code === "INVALID_AMOUNT") {
+      return new ImportRequestError("INVALID_AMOUNT", 400);
     }
     return new ImportRequestError("INVALID_CSV", 400);
   }
