@@ -4,7 +4,7 @@ Threat-model date: 2026-09-17
 
 ## Purpose and scope
 
-This threat model covers the public fictional Phase 1 application and the planned trust boundaries for Supabase authentication, private persistence, and statement processing. Planned components are design targets, not implemented controls.
+This threat model covers the implemented local Phase 2 authentication and private persistence boundaries plus the planned statement-processing and provider boundaries. Planned components remain design targets, not implemented controls.
 
 The model uses STRIDE:
 
@@ -19,54 +19,57 @@ The model uses STRIDE:
 
 ### What exists now
 
-- Public Next.js routes for landing, dashboard, subscriptions, subscription details, import preview, calendar, savings, and settings.
-- Server-rendered and statically generated pages using fictional source data.
-- Client Components for navigation, theme selection, filtering, review decisions, savings selection, and temporary preferences.
-- React component memory for demo interactions.
+- Public Next.js routes for landing, sign-up, sign-in, password recovery, and email confirmation.
+- Protected, dynamically rendered routes for onboarding, dashboard, subscriptions, subscription details, import preview, calendar, savings, and settings.
+- Supabase Auth with request-scoped SSR clients, HttpOnly `SameSite=Lax` cookies, refresh-token rotation, verified `getClaims()` identity, and a Next.js 16 proxy.
+- PostgreSQL tables for every first-release entity, with constraints, owner-safe foreign keys, indexes, revoked default grants, and RLS enabled.
+- Owner-scoped profile, budget, savings-goal, and subscription-read policies. Future-feature tables have no client grants.
+- A server-only DAL that selects minimal columns and maps records into route-specific browser DTOs.
+- Server Actions for sign-up, sign-in, sign-out, recovery, password update, onboarding, and preference updates.
+- Redacted audit triggers for profile, subscription, budget, and savings-goal row changes.
+- Client Components for navigation, theme selection, filtering, review decisions, savings selection, and validated preference forms.
+- React component memory only for the fictional import-review exercise and unsaved savings selection.
 - A `next-themes` local-storage entry containing only the selected theme.
 - A public fictional CSV sample.
-- A user-initiated external link to fixed `https://example.com` provider URLs.
+- HTTPS-only provider links with visible hostnames and opener isolation.
 - Build-time Google font retrieval through `next/font`, with self-hosted browser delivery.
+- A tested CSP and supporting browser-security headers.
 
 ### What is partially scaffolded
 
-- Zod defines a subscription schema, but there is no untrusted request boundary yet.
-- Product and architecture documents describe authentication, RLS, logging, import stages, deletion, and provider interfaces, but none is executable.
+- Subscription persistence is read-only until Phase 3 adds reviewed write policies, mutation DAL methods, and forms.
 - The import page demonstrates review decisions but has no file input or parser.
-- The settings form changes local React state only.
+- Future tables exist with RLS and no client grants so their owning phases can add policies explicitly.
+- Audit events cover current database writes, while deployment monitoring, alerts, and retention remain unimplemented.
 
 ### What is planned
 
-- Supabase Auth with server-verified cookie sessions.
-- PostgreSQL tables protected by grants, RLS, and server ownership checks.
-- A server-only DAL returning minimal DTOs.
-- Server Actions or route handlers for validated mutations.
+- Subscription mutation Server Actions and owner policies in Phase 3.
 - A bounded CSV import pipeline with temporary raw-data handling.
-- Structured redacted security audit events.
 - Account export, account deletion, and retention processing.
 - Future bank and email adapters, which are outside the first release.
 
 ## Assets
 
-| Asset                                             | Sensitivity    | Current state             | Required protection                                                             |
-| ------------------------------------------------- | -------------- | ------------------------- | ------------------------------------------------------------------------------- |
-| User identity and verified email                  | High           | Not implemented           | Server-verified authentication, generic responses, minimal disclosure           |
-| Authentication and refresh sessions               | Critical       | Not implemented           | Secure cookie, verification, rotation, revocation, no browser storage or logs   |
-| User profile and preferences                      | Medium         | Fictional/local only      | Owner authorization, minimal DTO, export and deletion                           |
-| Subscription records                              | High           | Fictional source fixture  | Owner authorization, RLS, integrity, minimal browser exposure                   |
-| Transaction records and merchant descriptions     | High           | Fictional sample only     | Owner isolation, redaction, bounded retention, no analytics or AI transfer      |
-| Uploaded financial statement                      | High           | No upload exists          | Strict limits, private ephemeral handling, guaranteed cleanup paths             |
-| Import metadata and mappings                      | Medium to High | Not implemented           | Owner isolation, deduplication, safe errors, retention                          |
-| Merchant aliases                                  | Medium         | Not implemented           | Owner isolation; shared aliases require a separate trust model                  |
-| Price history                                     | High           | One fictional prior price | Integrity, owner isolation, confirmation workflow                               |
-| Reminder records                                  | Medium         | Fictional UI only         | Owner isolation, safe delivery, no sensitive payload in notifications           |
-| Budget and savings values                         | High           | Fictional/local only      | Owner isolation, no logs, accurate integer calculations                         |
-| Cancellation URLs, instructions, phone, and notes | Medium to High | Fixed example URL only    | HTTPS allowlist, provenance, owner authorization, anti-phishing copy            |
-| Audit events                                      | High           | Not implemented           | Append orientation, tamper resistance, strict read access, no sensitive content |
-| Environment and Supabase secrets                  | Critical       | Placeholders only         | Secret manager, server-only import boundary, rotation, least privilege          |
-| Future bank connection tokens                     | Critical       | Not implemented           | Provider adapter isolation, encryption, revocation, never bank credentials      |
-| Future email access tokens                        | Critical       | Not implemented           | Minimal scopes, adapter isolation, encryption, revocation                       |
-| Source, lockfile, and build artifacts             | High           | Local workspace           | Version control integrity, reviewed changes, clean reproducible build           |
+| Asset                                             | Sensitivity    | Current state                    | Required protection                                                              |
+| ------------------------------------------------- | -------------- | -------------------------------- | -------------------------------------------------------------------------------- |
+| User identity and verified email                  | High           | Local Supabase Auth              | Server-verified authentication, generic responses, minimal disclosure            |
+| Authentication and refresh sessions               | Critical       | HttpOnly cookie sessions         | Verification, rotation, bounded lifetime, revocation, no browser storage or logs |
+| User profile and preferences                      | Medium         | Owner-scoped PostgreSQL          | Owner authorization, minimal DTO, export and deletion                            |
+| Subscription records                              | High           | Owner-scoped read access         | Owner authorization, RLS, integrity, minimal browser exposure                    |
+| Transaction records and merchant descriptions     | High           | Fictional sample only            | Owner isolation, redaction, bounded retention, no analytics or AI transfer       |
+| Uploaded financial statement                      | High           | No upload exists                 | Strict limits, private ephemeral handling, guaranteed cleanup paths              |
+| Import metadata and mappings                      | Medium to High | Not implemented                  | Owner isolation, deduplication, safe errors, retention                           |
+| Merchant aliases                                  | Medium         | Not implemented                  | Owner isolation; shared aliases require a separate trust model                   |
+| Price history                                     | High           | One fictional prior price        | Integrity, owner isolation, confirmation workflow                                |
+| Reminder records                                  | Medium         | Fictional UI only                | Owner isolation, safe delivery, no sensitive payload in notifications            |
+| Budget and savings values                         | High           | Owner-scoped PostgreSQL          | Owner isolation, no logs, accurate integer calculations                          |
+| Cancellation URLs, instructions, phone, and notes | Medium to High | Fixed example URL only           | HTTPS allowlist, provenance, owner authorization, anti-phishing copy             |
+| Audit events                                      | High           | Trigger-written, no client grant | Append orientation, tamper resistance, strict read access, no sensitive content  |
+| Environment and Supabase secrets                  | Critical       | Placeholders only                | Secret manager, server-only import boundary, rotation, least privilege           |
+| Future bank connection tokens                     | Critical       | Not implemented                  | Provider adapter isolation, encryption, revocation, never bank credentials       |
+| Future email access tokens                        | Critical       | Not implemented                  | Minimal scopes, adapter isolation, encryption, revocation                        |
+| Source, lockfile, and build artifacts             | High           | Local workspace                  | Version control integrity, reviewed changes, clean reproducible build            |
 
 ## Threat actors
 
@@ -87,21 +90,23 @@ The model uses STRIDE:
 
 ### Current
 
-- HTTP `GET` requests to eight public routes and seven statically generated detail paths.
-- Client-side filter, checkbox, and preferences controls with no server effect.
+- Public HTTP requests to landing and authentication routes.
+- Session-bound requests to protected dynamic routes and user-owned object IDs.
+- Auth Server Actions for registration, sign-in, sign-out, recovery, password update, onboarding, and preferences.
+- The email confirmation Route Handler and session-refresh proxy.
+- User-scoped Supabase Data API requests from server-only clients.
+- Client-side filtering and savings selection over minimal serialized DTOs.
 - Public download of the fictional CSV.
 - User click on a provider link.
 - npm install/build/test toolchain and its package lifecycle scripts.
 
 ### Planned
 
-- Sign-up, sign-in, sign-out, password reset, session refresh, and account deletion.
-- Protected page reads and every Server Action or route handler.
-- Dynamic subscription identifiers and other record IDs.
-- Supabase Data API access through the public publishable key.
+- Subscription mutation actions and dynamic object writes.
 - CSV file body, filename, metadata, mapped headers, and parsed cells.
 - Data export.
 - Cancellation URLs and user notes.
+- Account deletion and cross-device session revocation.
 - Administrative support tools and audit review.
 - Future bank and email OAuth callbacks, tokens, and webhooks.
 
@@ -118,54 +123,59 @@ The model uses STRIDE:
 9. **Application to external providers:** Bank, email, notification, and analytics providers create new confidentiality and availability dependencies.
 10. **Developer/CI to package registry and artifacts:** Dependencies and lifecycle scripts execute with developer or build permissions.
 
-## Current Phase 1 data flow
+## Current Phase 2 data flow
 
 ```mermaid
 flowchart LR
-    User[Internet user]
-
-    subgraph App[SubTrack deployment]
-        Build[Build process]
-        Next[Next.js server and static output]
-        Demo[(Fictional source data)]
-        Sample[Public fictional CSV]
-    end
+    User[User]
 
     subgraph Device[User device]
         Browser[Browser]
         Clients[Client Components]
-        Memory[(React memory)]
-        Theme[(localStorage theme)]
+        Theme[(Theme preference only)]
     end
 
-    Google[Google Fonts at build time]
-    Provider[example.com provider link]
-    Registry[npm registry during install and audit]
+    subgraph App[Next.js server]
+        Proxy[Session refresh proxy]
+        Actions[Validated Server Actions]
+        Routes[Protected Server Components]
+        DAL[Server-only DAL and minimal DTOs]
+    end
 
-    Registry -->|Packages and metadata| Build
-    Google -->|Font files| Build
-    Demo -->|Build and render input| Next
-    Build -->|Application artifact| Next
-    User -->|Public GET| Next
-    Next -->|HTML and RSC payload| Browser
-    Browser --> Clients
-    Clients -->|Temporary demo state| Memory
-    Clients -->|Theme name only| Theme
-    Browser -->|Download| Sample
-    Browser -->|User-initiated navigation| Provider
+    subgraph Supabase[Local Supabase]
+        Auth[Supabase Auth]
+        DB[(PostgreSQL with grants and RLS)]
+        Audit[(Protected audit events)]
+        Mail[Mailpit development email]
+    end
+
+    User --> Browser
+    Browser -->|Cookies and requests| Proxy
+    Proxy -->|getClaims verification| Auth
+    Proxy --> Routes
+    Browser -->|Same-origin form POST| Actions
+    Actions -->|Reverify claims| Auth
+    Routes --> DAL
+    Actions --> DAL
+    DAL -->|User-scoped query| DB
+    DB --> Audit
+    DAL -->|Minimal DTO| Browser
+    Auth -->|Local confirmation and recovery| Mail
+    Clients --> Theme
 ```
 
 Current trust observations:
 
-- All product records are fictional and intentionally public.
-- The browser receives full fictional subscription records on two routes.
-- No browser request can persist a product change.
-- No user identity or financial secret crosses a runtime network boundary.
+- Public preview and import-review content remain fictional.
+- Private profile, budget, savings-goal, and subscription records are user-owned.
+- The browser receives route-specific DTOs, not database rows.
+- Every protected request verifies signed claims, and database RLS independently enforces ownership.
+- No elevated database credential exists in application code or browser bundles.
 - Package retrieval and build-time font retrieval remain supply-chain boundaries.
 
-## Planned private-data and import flow
+## Planned Phase 3 and Phase 4 mutation and import flow
 
-The following diagram spans Phase 2 authentication and persistence plus the Phase 4 statement workflow. Dashed components are planned.
+The following diagram extends the implemented Phase 2 boundary with planned subscription mutations and the Phase 4 statement workflow. Dashed components are planned.
 
 ```mermaid
 flowchart LR
@@ -182,10 +192,10 @@ flowchart LR
     end
 
     subgraph App[Next.js server]
-        Proxy[Planned session refresh proxy]
+        Proxy[Implemented session refresh proxy]
         Entry[Planned Server Action or route handler]
-        DAL[Planned server-only DAL and minimal DTOs]
-        Audit[Planned redacted audit service]
+        DAL[Implemented server-only DAL and minimal DTOs]
+        Audit[Implemented redacted database audit triggers]
 
         subgraph Import[Planned bounded import worker]
             Receive[Receive stream]
@@ -198,9 +208,9 @@ flowchart LR
     end
 
     subgraph Supabase[Supabase boundary]
-        Auth[Supabase Auth]
-        DB[(PostgreSQL with grants and RLS)]
-        AuditStore[(Protected audit events)]
+        Auth[Implemented Supabase Auth]
+        DB[(Implemented PostgreSQL grants and RLS)]
+        AuditStore[(Implemented protected audit events)]
     end
 
     Secrets[Deployment secret manager]
@@ -231,32 +241,32 @@ flowchart LR
 
 ## Threat scenarios
 
-Likelihood and impact describe the system after the relevant feature exists. They do not assert current Phase 1 exploitability.
+Likelihood and impact describe the current system or the system after the relevant future feature exists. Planned attack scenarios do not assert current exploitability.
 
-| ID    | STRIDE and actor                                         | Asset, entry point, and boundary                            | Attack scenario                                                                                                              | Existing control                                                                                         | Missing control                                                                     | Likelihood | Impact   | Recommended mitigation and blocking phase                                                                                                                        |
-| ----- | -------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TM-01 | Spoofing; unauthenticated user                           | Identity/session; auth endpoint; browser-to-server          | The attacker forges or replays cookie content and server code trusts unverified session data.                                | Supabase is selected; no session exists now.                                                             | Verified claims, cookie policy, rotation, expiry, revocation.                       | High       | High     | Use Supabase SSR and server `getClaims()` verification; test forged/expired/revoked sessions. Before Phase 2.                                                    |
-| TM-02 | Spoofing; stolen-session attacker                        | Session and account; every protected operation              | A stolen session remains valid through logout, password reset, or excessive inactivity.                                      | No session exists now.                                                                                   | Idle/absolute expiry, logout invalidation, risk-event revocation, reauthentication. | Medium     | High     | Approve session lifecycle and step-up requirements; add direct-entry tests. Before Phase 2.                                                                      |
-| TM-03 | Elevation and disclosure; malicious user                 | Any user-owned row; dynamic ID; server-to-DAL and DAL-to-DB | The user changes a record ID and reads or modifies another user's data.                                                      | Planned `user_id`, server checks, and RLS.                                                               | Per-operation policy, ownership query, two-user test.                               | High       | High     | Deny by default, authorize every object, use RLS and test owner/non-owner/anonymous cases. Phase 2.                                                              |
-| TM-04 | Tampering; malicious user                                | Ownership fields; mutation input; browser-to-server         | The user supplies another `user_id` during create or update and reassigns a record.                                          | Zod is available.                                                                                        | Server-owned identity assignment and RLS `with check`.                              | High       | High     | Ignore client ownership fields, derive from verified claims, and test mass assignment. Phase 2.                                                                  |
-| TM-05 | Elevation; overprivileged client or developer            | Supabase server secret; environment-to-DAL                  | A service secret is imported into browser code or used in normal requests, bypassing RLS.                                    | Placeholder is labeled server-only; architecture recommends user-scoped clients.                         | Enforced import boundary, key minimization, CI bundle/secret checks.                | Medium     | Critical | Do not provision elevated keys by default; isolate unavoidable use in `server-only` code; scan bundles and rotate on exposure. Phase 2.                          |
-| TM-06 | Disclosure/spoofing; misconfigured deployment            | Session and private HTML; edge cache                        | A CDN caches private HTML or a refresh response with `Set-Cookie` and serves it to another user.                             | Current content is fictional; Next.js defaults production browser source maps off.                       | Protected cache policy and Supabase header propagation.                             | Medium     | Critical | Use request-bound rendering and `private, no-store`; preserve refresh cache headers; test through a cache. Phase 2.                                              |
-| TM-07 | Denial of service; bot or malicious file                 | Import service; file body; edge-to-parser                   | Repeated oversized, deeply quoted, or oversized-field CSV files exhaust CPU, memory, or disk.                                | No upload exists; requirements mention limits.                                                           | Numeric limits, streaming, worker timeout, concurrency and rate limits.             | High       | High     | Enforce the proposed import budget below before body buffering and parser execution. Phase 4.                                                                    |
-| TM-08 | Tampering/injection; malicious file                      | Merchant text and headers; parser-to-domain/log/browser     | A cell contains HTML, controls, bidi characters, or CR/LF sequences that attack rendering, logs, or reviewer interpretation. | React escapes JSX; current source has no logs or raw HTML.                                               | Canonical validation, Unicode/control policy, log encoding, confusable review.      | Medium     | High     | Normalize and validate every field; render as text; sanitize logs; retain original only ephemerally. Phase 4.                                                    |
-| TM-09 | Injection; malicious user or file                        | CSV export; domain-to-spreadsheet                           | Formula-prefixed merchant or note data executes when an exported CSV opens in spreadsheet software.                          | No export exists; requirements mention formula protection.                                               | Target-specific export escaping and tests.                                          | Medium     | High     | Quote every cell and apply documented spreadsheet-safe neutralization at export time for formula and control prefixes. Before any CSV export.                    |
-| TM-10 | Tampering/disclosure; malicious user                     | Import hash and rows; DAL-to-DB                             | Races or globally scoped hashes let one user suppress, infer, merge, or approve another user's import.                       | Deduplication is planned.                                                                                | User-bound unique constraints, transaction, idempotency key, ownership checks.      | Medium     | High     | Scope hashes and unique keys to verified user, process atomically, and test concurrency and two-user collisions. Phase 4.                                        |
-| TM-11 | Disclosure; misconfiguration or support actor            | Raw statement; parser temporary storage                     | Raw files remain after error, timeout, restart, or support debugging and become readable later.                              | Design requires raw deletion.                                                                            | Concrete storage, expiry, recovery cleanup, backup exclusion, proof tests.          | Medium     | High     | Use generated IDs in private bounded ephemeral storage, no backup/web access, and cleanup on every terminal path plus sweeper. Phase 4.                          |
-| TM-12 | Tampering/elevation; compromised dependency              | Source, CI credentials, artifact; registry-to-build         | A malicious dependency or lifecycle script steals tokens or modifies output.                                                 | Lockfile integrity, registry-only sources, zero advisories, production signatures verified.              | Complete provenance policy, isolated CI, continuous monitoring.                     | Medium     | High     | Use clean locked installs, least-privilege CI tokens, package-change review, and advisory/provenance gates. Before public deployment.                            |
-| TM-13 | Disclosure/repudiation; support administrator            | User records and audit logs; support tooling                | Support staff browse or export financial details without a documented purpose or attribution.                                | No support tooling exists.                                                                               | Roles, purpose limitation, masked DTOs, approval, access audit.                     | Medium     | High     | Create separate support roles and views, default-deny access, prohibit impersonation by default, and audit every access. Before support tooling.                 |
-| TM-14 | Denial of service/spoofing; automated bot                | Auth, reset, import, export; internet-to-edge               | Automation enumerates accounts, guesses passwords, floods imports, or consumes provider quotas.                              | No sensitive endpoint exists.                                                                            | Generic auth responses, layered rate limits, abuse signals, alerts.                 | High       | High     | Apply account and network-aware throttles, bounded queues, generic errors, monitoring, and provider quota controls. Phase 2 for auth; Phase 4 for imports.       |
-| TM-15 | Tampering/repudiation; malicious user or admin           | Audit events; DAL-to-audit store                            | An actor edits or deletes evidence of export, deletion, failed access, or administrative reads.                              | Append-oriented audit is planned.                                                                        | Restricted grants, integrity protection, retention, alerting, clock sync.           | Medium     | High     | Deny user writes, append through controlled server path or trigger, restrict readers, and monitor deletion/tampering. Phase 2.                                   |
-| TM-16 | Spoofing/injection; compromised guide author             | Cancellation URL; database-to-browser                       | A trusted-looking guide directs the user to a malicious or non-HTTPS destination.                                            | Current URL is fixed HTTPS and new-tab link uses `noreferrer`; copy says provider confirms cancellation. | Protocol allowlist, provenance, moderation, verification date, report flow.         | Medium     | High     | Permit HTTPS, reject credentials/controls, display destination host, track provenance, and revalidate shared content. Phase 3/6.                                 |
-| TM-17 | Disclosure/elevation; provider compromise or developer   | Bank/email tokens; provider adapter boundary                | An overly broad token leaks through logs, browser props, database query, or support tooling.                                 | Interfaces are planned; integrations are deferred.                                                       | Scope inventory, encryption, adapter isolation, rotation/revocation, vendor review. | Medium     | Critical | Request minimum read-only scopes, isolate secrets, never return tokens, revoke on disconnect, and threat-model each provider. Future integration gate.           |
-| TM-18 | Disclosure/injection; malicious input or developer error | Logs/errors; application-to-log/user                        | A stack trace, request body, transaction description, or token reaches logs or a user-facing error.                          | Requirements prohibit sensitive logging; no current logger exists.                                       | Structured allowlist, redaction, generic errors, tests.                             | Medium     | High     | Implement one tested security-event API and safe error mapping; prohibit bodies and secrets. Phase 2/4.                                                          |
-| TM-19 | Tampering; unauthenticated site                          | State-changing operation; browser-to-server                 | A cross-site request triggers a mutation through ambient cookies.                                                            | No mutation exists; Next.js Server Actions use POST and compare origin/host.                             | Per-entry auth, CSRF design for handlers, SameSite policy, allowed-origin review.   | Medium     | High     | Use POST-only mutations, verify session and origin, keep SameSite defense in depth, and test cross-origin requests. Phase 2.                                     |
-| TM-20 | Disclosure/elevation; third-party script compromise      | Browser DOM and session-bound UI; external script boundary  | Analytics or a tag manager reads financial content from the DOM and sends it to a vendor.                                    | No runtime third-party script exists; fonts are self-hosted.                                             | Policy preventing unreviewed scripts and analytics on private pages.                | Medium     | High     | Default to no third-party runtime script on authenticated pages; require vendor/data-flow review, CSP, and minimal server-side events. Before public deployment. |
+| ID    | STRIDE and actor                                         | Asset, entry point, and boundary                            | Attack scenario                                                                                                              | Existing control                                                                                                                                      | Missing control                                                                      | Likelihood | Impact   | Recommended mitigation and blocking phase                                                                                                                        |
+| ----- | -------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TM-01 | Spoofing; unauthenticated user                           | Identity/session; auth endpoint; browser-to-server          | The attacker forges or replays cookie content and server code trusts unverified session data.                                | Request-scoped Supabase SSR clients call `getClaims()` in proxy, layouts, and actions; forged cookies redirect to sign-in.                            | Hosted signing-key and provider configuration review.                                | Low        | High     | Preserve verified-claims checks at every protected entry and test hosted configuration before deployment.                                                        |
+| TM-02 | Spoofing; stolen-session attacker                        | Session and account; every protected operation              | A stolen session remains valid through logout, password reset, or excessive inactivity.                                      | HttpOnly `SameSite=Lax` cookies, token rotation, 24-hour local timebox, 8-hour inactivity timeout, logout and recovery tests.                         | Cross-device revocation and recent-authentication checks for Phase 6 operations.     | Medium     | High     | Add global session revocation and step-up authentication before account deletion and identity changes. Phase 6.                                                  |
+| TM-03 | Elevation and disclosure; malicious user                 | Any user-owned row; dynamic ID; server-to-DAL and DAL-to-DB | The user changes a record ID and reads or modifies another user's data.                                                      | Verified owner filters, deny-by-default grants, RLS, owner-blind 404s, 49 pgTAP assertions, and browser two-user tests.                               | Mutation-specific policies for each future feature.                                  | Low        | High     | Add grants and policies only with the owning phase and repeat owner, non-owner, and anonymous tests.                                                             |
+| TM-04 | Tampering; malicious user                                | Ownership fields; mutation input; browser-to-server         | The user supplies another `user_id` during create or update and reassigns a record.                                          | Onboarding derives ownership from `auth.uid()`; RLS `with check` and column grants block identity writes.                                             | Subscription mutation DTOs and policies are deferred to Phase 3.                     | Low        | High     | Derive ownership inside every Phase 3 DAL mutation and test mass assignment plus ID tampering.                                                                   |
+| TM-05 | Elevation; overprivileged client or developer            | Supabase server secret; environment-to-DAL                  | A service secret is imported into browser code or used in normal requests, bypassing RLS.                                    | Application code uses only the publishable key; server modules use `server-only`; local test admin key is resolved at runtime from ignored CLI state. | Production secret manager, access review, and bundle scan.                           | Low        | Critical | Do not provision an elevated key to normal app paths; verify production bundles and rotate any exposed key. Before deployment.                                   |
+| TM-06 | Disclosure/spoofing; misconfigured deployment            | Session and private HTML; edge cache                        | A CDN caches private HTML or a refresh response with `Set-Cookie` and serves it to another user.                             | Auth refresh propagates cache headers, protected routes are dynamic, and `next start` tests require `private` plus `no-store`.                        | Hosted CDN and reverse-proxy verification.                                           | Low        | Critical | Repeat two-user response and cookie-isolation tests against production-equivalent hosting before deployment.                                                     |
+| TM-07 | Denial of service; bot or malicious file                 | Import service; file body; edge-to-parser                   | Repeated oversized, deeply quoted, or oversized-field CSV files exhaust CPU, memory, or disk.                                | No upload exists; requirements mention limits.                                                                                                        | Numeric limits, streaming, worker timeout, concurrency and rate limits.              | High       | High     | Enforce the proposed import budget below before body buffering and parser execution. Phase 4.                                                                    |
+| TM-08 | Tampering/injection; malicious file                      | Merchant text and headers; parser-to-domain/log/browser     | A cell contains HTML, controls, bidi characters, or CR/LF sequences that attack rendering, logs, or reviewer interpretation. | React escapes JSX; current source has no logs or raw HTML.                                                                                            | Canonical validation, Unicode/control policy, log encoding, confusable review.       | Medium     | High     | Normalize and validate every field; render as text; sanitize logs; retain original only ephemerally. Phase 4.                                                    |
+| TM-09 | Injection; malicious user or file                        | CSV export; domain-to-spreadsheet                           | Formula-prefixed merchant or note data executes when an exported CSV opens in spreadsheet software.                          | No export exists; requirements mention formula protection.                                                                                            | Target-specific export escaping and tests.                                           | Medium     | High     | Quote every cell and apply documented spreadsheet-safe neutralization at export time for formula and control prefixes. Before any CSV export.                    |
+| TM-10 | Tampering/disclosure; malicious user                     | Import hash and rows; DAL-to-DB                             | Races or globally scoped hashes let one user suppress, infer, merge, or approve another user's import.                       | Deduplication is planned.                                                                                                                             | User-bound unique constraints, transaction, idempotency key, ownership checks.       | Medium     | High     | Scope hashes and unique keys to verified user, process atomically, and test concurrency and two-user collisions. Phase 4.                                        |
+| TM-11 | Disclosure; misconfiguration or support actor            | Raw statement; parser temporary storage                     | Raw files remain after error, timeout, restart, or support debugging and become readable later.                              | Design requires raw deletion.                                                                                                                         | Concrete storage, expiry, recovery cleanup, backup exclusion, proof tests.           | Medium     | High     | Use generated IDs in private bounded ephemeral storage, no backup/web access, and cleanup on every terminal path plus sweeper. Phase 4.                          |
+| TM-12 | Tampering/elevation; compromised dependency              | Source, CI credentials, artifact; registry-to-build         | A malicious dependency or lifecycle script steals tokens or modifies output.                                                 | Lockfile integrity, registry-only sources, zero advisories, production signatures verified.                                                           | Complete provenance policy, isolated CI, continuous monitoring.                      | Medium     | High     | Use clean locked installs, least-privilege CI tokens, package-change review, and advisory/provenance gates. Before public deployment.                            |
+| TM-13 | Disclosure/repudiation; support administrator            | User records and audit logs; support tooling                | Support staff browse or export financial details without a documented purpose or attribution.                                | No support tooling exists.                                                                                                                            | Roles, purpose limitation, masked DTOs, approval, access audit.                      | Medium     | High     | Create separate support roles and views, default-deny access, prohibit impersonation by default, and audit every access. Before support tooling.                 |
+| TM-14 | Denial of service/spoofing; automated bot                | Auth, reset, import, export; internet-to-edge               | Automation enumerates accounts, guesses passwords, floods imports, or consumes provider quotas.                              | Generic auth responses and local Supabase Auth rate limits are configured; imports do not exist.                                                      | Hosted rate-limit validation, abuse monitoring, optional CAPTCHA, and import quotas. | Medium     | High     | Verify hosted Auth limits before deployment and add bounded queues plus account/network limits before Phase 4.                                                   |
+| TM-15 | Tampering/repudiation; malicious user or admin           | Audit events; DAL-to-audit store                            | An actor edits or deletes evidence of export, deletion, failed access, or administrative reads.                              | Database triggers append redacted row-change events; client roles have no direct audit-table grant.                                                   | Hosted retention, alerting, clock sync, and administrator-access audit.              | Low        | High     | Configure operational retention and monitoring before deployment; add event types with each sensitive phase.                                                     |
+| TM-16 | Spoofing/injection; compromised guide author             | Cancellation URL; database-to-browser                       | A trusted-looking guide directs the user to a malicious or non-HTTPS destination.                                            | HTTPS-only validation, render-time revalidation, visible hostname, `noopener noreferrer`, and provider-confirmation copy.                             | Provenance, moderation, verification date, and report flow for shared guides.        | Low        | High     | Preserve URL controls in Phase 3 and add provenance and moderation before shared guidance in Phase 6.                                                            |
+| TM-17 | Disclosure/elevation; provider compromise or developer   | Bank/email tokens; provider adapter boundary                | An overly broad token leaks through logs, browser props, database query, or support tooling.                                 | Interfaces are planned; integrations are deferred.                                                                                                    | Scope inventory, encryption, adapter isolation, rotation/revocation, vendor review.  | Medium     | Critical | Request minimum read-only scopes, isolate secrets, never return tokens, revoke on disconnect, and threat-model each provider. Future integration gate.           |
+| TM-18 | Disclosure/injection; malicious input or developer error | Logs/errors; application-to-log/user                        | A stack trace, request body, transaction description, or token reaches logs or a user-facing error.                          | User-facing errors are generic; current audit triggers store event type, IDs, result, and empty details only.                                         | Deployment log redaction tests, alerting, and future import-event allowlists.        | Low        | High     | Keep bodies and secrets out of logs and add captured-log tests with each sensitive feature.                                                                      |
+| TM-19 | Tampering; unauthenticated site                          | State-changing operation; browser-to-server                 | A cross-site request triggers a mutation through ambient cookies.                                                            | Next.js Server Actions enforce same-origin behavior; cookies are `SameSite=Lax`; every protected action rechecks claims.                              | Production allowed-origin review and regression tests for new Route Handlers.        | Low        | High     | Keep mutations POST-only, validate origin where handlers bypass Server Actions, and test each new entry point.                                                   |
+| TM-20 | Disclosure/elevation; third-party script compromise      | Browser DOM and session-bound UI; external script boundary  | Analytics or a tag manager reads financial content from the DOM and sends it to a vendor.                                    | No runtime third-party script exists; fonts are self-hosted.                                                                                          | Policy preventing unreviewed scripts and analytics on private pages.                 | Medium     | High     | Default to no third-party runtime script on authenticated pages; require vendor/data-flow review, CSP, and minimal server-side events. Before public deployment. |
 
-## Planned RLS verification matrix
+## Current and planned RLS verification matrix
 
 All rows below assume these baseline controls:
 
@@ -272,20 +282,20 @@ All rows below assume these baseline controls:
 
 `Allow` means the owner can perform the operation through an approved application path. `Deferred` means the table receives no client-role grant until its owning feature phase.
 
-| Table                        | Owner select                                    | Owner insert   | Owner update   | Owner delete                   | Anonymous | Other user | System and verification notes                                                                                  |
-| ---------------------------- | ----------------------------------------------- | -------------- | -------------- | ------------------------------ | --------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `profiles`                   | Allow                                           | Allow self row | Allow self row | Allow through account deletion | Deny all  | Deny all   | Unique `user_id`; test attempted ownership reassignment and account cascade                                    |
-| `subscriptions`              | Allow                                           | Allow          | Allow          | Allow                          | Deny all  | Deny all   | Server overwrites `user_id`; distinguish archive, delete, and provider cancellation                            |
-| `transactions`               | Deferred to Phase 4                             | Deferred       | Deferred       | Deferred                       | Deny all  | Deny all   | Create locked table in Phase 2 if required, but grant no client operation until import policy is reviewed      |
-| `statement_imports`          | Deferred to Phase 4                             | Deferred       | Deferred       | Deferred                       | Deny all  | Deny all   | Hash uniqueness includes owner; raw bytes never stored in this table                                           |
-| `import_column_mappings`     | Deferred to Phase 4                             | Deferred       | Deferred       | Deferred                       | Deny all  | Deny all   | Mapping ownership must agree with parent import; reject cross-owner foreign keys                               |
-| `merchant_aliases`           | Deferred to Phase 4                             | Deferred       | Deferred       | Deferred                       | Deny all  | Deny all   | Keep user aliases separate from any future moderated global aliases                                            |
-| `subscription_price_history` | Deferred to Phase 5                             | Deferred       | Deferred       | Deferred                       | Deny all  | Deny all   | Prefer append through a controlled domain operation; users confirm but do not rewrite history silently         |
-| `reminders`                  | Deferred to Phase 5                             | Deferred       | Deferred       | Deferred                       | Deny all  | Deny all   | Notification worker access needs a separate minimal role and redacted payload                                  |
-| `budgets`                    | Deferred to Phase 5                             | Deferred       | Deferred       | Deferred                       | Deny all  | Deny all   | Unique active budget per user/currency as product rules require                                                |
-| `savings_goals`              | Deferred to Phase 5                             | Deferred       | Deferred       | Deferred                       | Deny all  | Deny all   | Realized savings changes only through confirmed subscription state transition                                  |
-| `cancellation_guides`        | Deferred to Phase 6                             | Deferred       | Deferred       | Deferred                       | Deny all  | Deny all   | User-owned guides and future community guides require separate tables or explicit moderation states            |
-| `audit_events`               | Deny direct table access; optional filtered DTO | Deny           | Deny           | Deny                           | Deny all  | Deny all   | Append through a controlled server operation or database trigger; no service key in normal browser-facing path |
+| Table                        | Owner select                                    | Owner insert          | Owner update               | Owner delete         | Anonymous | Other user | System and verification notes                                                                                  |
+| ---------------------------- | ----------------------------------------------- | --------------------- | -------------------------- | -------------------- | --------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
+| `profiles`                   | Allow                                           | Auth trigger only     | Allowed preference columns | Account cascade only | Deny all  | Deny all   | Implemented; identity columns are not writable and tests cover reassignment and cascade                        |
+| `subscriptions`              | Allow                                           | Deferred to Phase 3   | Deferred to Phase 3        | Deferred to Phase 3  | Deny all  | Deny all   | Implemented read policy; no write grants until the Phase 3 mutation DAL ships                                  |
+| `transactions`               | Deferred to Phase 4                             | Deferred              | Deferred                   | Deferred             | Deny all  | Deny all   | Create locked table in Phase 2 if required, but grant no client operation until import policy is reviewed      |
+| `statement_imports`          | Deferred to Phase 4                             | Deferred              | Deferred                   | Deferred             | Deny all  | Deny all   | Hash uniqueness includes owner; raw bytes never stored in this table                                           |
+| `import_column_mappings`     | Deferred to Phase 4                             | Deferred              | Deferred                   | Deferred             | Deny all  | Deny all   | Mapping ownership must agree with parent import; reject cross-owner foreign keys                               |
+| `merchant_aliases`           | Deferred to Phase 4                             | Deferred              | Deferred                   | Deferred             | Deny all  | Deny all   | Keep user aliases separate from any future moderated global aliases                                            |
+| `subscription_price_history` | Deferred to Phase 5                             | Deferred              | Deferred                   | Deferred             | Deny all  | Deny all   | Prefer append through a controlled domain operation; users confirm but do not rewrite history silently         |
+| `reminders`                  | Deferred to Phase 5                             | Deferred              | Deferred                   | Deferred             | Deny all  | Deny all   | Notification worker access needs a separate minimal role and redacted payload                                  |
+| `budgets`                    | Allow                                           | Allowed owner columns | Allowed owner columns      | Allow                | Deny all  | Deny all   | Implemented for onboarding and settings; identity columns are not writable                                     |
+| `savings_goals`              | Allow                                           | Allowed owner columns | Allowed goal columns       | Allow                | Deny all  | Deny all   | Implemented; realized savings remains non-writable until confirmed cancellation workflows                      |
+| `cancellation_guides`        | Deferred to Phase 6                             | Deferred              | Deferred                   | Deferred             | Deny all  | Deny all   | User-owned guides and future community guides require separate tables or explicit moderation states            |
+| `audit_events`               | Deny direct table access; optional filtered DTO | Deny                  | Deny                       | Deny                 | Deny all  | Deny all   | Append through a controlled server operation or database trigger; no service key in normal browser-facing path |
 
 For every table, pgTAP must test:
 
@@ -340,20 +350,20 @@ These values are conservative starting limits for a personal statement import. L
 
 ## Existing and planned control map
 
-| Control area        | Exists now                                                    | Required next                                                                |
-| ------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Input encoding      | React text escaping; static Zod fixture                       | Server validation at every boundary; URL and CSV-specific schemas            |
-| Authentication      | None by design                                                | Supabase SSR verified claims and session lifecycle                           |
-| Authorization       | None needed for fictional public data                         | DAL ownership checks plus deny-by-default grants and RLS                     |
-| Data minimization   | Fictional data only                                           | Route-specific SQL selection and DTOs                                        |
-| Secrets             | Placeholders and ignored environment files                    | Deployment secret manager and server-only access                             |
-| Browser storage     | Theme name only                                               | Keep all session and financial values out of web storage                     |
-| Logging             | No application logs                                           | Structured allowlisted events, redaction, integrity, retention, and alerts   |
-| File handling       | Public fictional download only                                | Bounded authenticated import pipeline and cleanup proof                      |
-| Dependency controls | Lockfile, integrity, audit, production signature verification | Continuous monitoring, isolated CI, reviewed lifecycle changes               |
-| Browser headers     | Not configured                                                | Tested CSP and supporting response headers                                   |
-| Error handling      | Framework 404 for unknown demo ID                             | Generic mapped errors, stable codes, rollback, and secure exceptional paths  |
-| Privacy             | Fictional-only warning and cancellation disclaimers           | Approved inventory, retention, export, deletion, and support-access controls |
+| Control area        | Exists now                                                                     | Required next                                                        |
+| ------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| Input encoding      | React text escaping; static Zod fixture                                        | Server validation at every boundary; URL and CSV-specific schemas    |
+| Authentication      | Supabase SSR, verified claims, HttpOnly cookies, bounded local sessions        | Hosted environment and provider configuration review                 |
+| Authorization       | Server identity checks, minimal DAL, explicit grants, RLS, 49 pgTAP assertions | Add mutation-specific policies only with each owning phase           |
+| Data minimization   | Route-specific SQL selection and exact browser DTO allowlists                  | Continue payload tests for every new Client Component                |
+| Secrets             | Public key only in app; local test administrator resolved at runtime           | Deployment secret manager and production access review               |
+| Browser storage     | Theme name only; auth tokens remain in HttpOnly cookies                        | Keep all financial values out of web storage                         |
+| Logging             | Redacted row-change audit events with no direct client access                  | Deployment retention, alerting, authentication-event integration     |
+| File handling       | Public fictional download only                                                 | Bounded authenticated import pipeline and cleanup proof              |
+| Dependency controls | Lockfile, integrity, audit, production signature verification                  | Continuous monitoring, isolated CI, reviewed lifecycle changes       |
+| Browser headers     | Tested CSP and supporting response headers                                     | Hosted CSP and HSTS review                                           |
+| Error handling      | Generic action errors, protected error boundary, owner-blind 404               | Stable operational codes and monitoring                              |
+| Privacy             | Data inventory, minimal storage, fictional import warning                      | Export, account deletion, backup expiry, and support-access controls |
 
 ## Residual risks
 

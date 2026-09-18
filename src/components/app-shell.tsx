@@ -6,6 +6,7 @@ import {
   CreditCard,
   FileUp,
   LayoutDashboard,
+  LogOut,
   PiggyBank,
   Settings2,
   type LucideIcon,
@@ -18,6 +19,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { APP_NAME } from "@/config/app";
+import { signOutAction } from "@/features/auth/actions";
 import { cn } from "@/lib/utils";
 
 type NavigationItem = {
@@ -83,10 +85,17 @@ function NavigationLink({
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  accountEmail,
+  children,
+}: {
+  accountEmail: string | null;
+  children: React.ReactNode;
+}) {
   const mobileItems = navigationItems.filter(
     (item) => item.href !== "/settings",
   );
+  const initial = accountEmail?.charAt(0).toUpperCase() ?? "U";
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -116,15 +125,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="border-t border-line p-4">
           <div className="flex items-center gap-3 rounded-md px-2 py-2">
             <span className="grid size-9 place-items-center rounded-full bg-info-soft text-sm font-extrabold text-info">
-              A
+              {initial}
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-bold text-ink">
-                Alex Morgan
+                {accountEmail ?? "Signed-in account"}
               </span>
-              <span className="block text-xs text-muted">Demo account</span>
+              <span className="block text-xs text-muted">
+                Private workspace
+              </span>
             </span>
             <ThemeToggle />
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                aria-label="Sign out"
+                title="Sign out"
+                className={buttonVariants({ variant: "ghost", size: "icon" })}
+              >
+                <LogOut aria-hidden="true" className="size-5" />
+              </button>
+            </form>
           </div>
         </div>
       </aside>
@@ -143,11 +164,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Settings2 aria-hidden="true" className="size-5" />
             </Link>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                aria-label="Sign out"
+                title="Sign out"
+                className={buttonVariants({ variant: "ghost", size: "icon" })}
+              >
+                <LogOut aria-hidden="true" className="size-5" />
+              </button>
+            </form>
           </div>
         </header>
 
         <header className="hidden h-16 items-center justify-end gap-2 border-b border-line bg-surface px-8 lg:flex">
-          <Badge tone="warning">Fictional demo data</Badge>
+          <Badge tone="success">Private workspace</Badge>
           <Link
             href="/calendar"
             className={buttonVariants({ variant: "ghost", size: "icon" })}

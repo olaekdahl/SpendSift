@@ -6,13 +6,17 @@ import { PageHeader } from "@/components/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { toSubscriptionListItems } from "@/features/subscriptions/browser-data";
 import { SubscriptionExplorer } from "@/features/subscriptions/subscription-explorer";
-import { demoSubscriptions } from "@/features/subscriptions/demo-data";
+import { requireAuthenticatedUser } from "@/server/auth";
+import { getSubscriptionsForUser } from "@/server/dal/subscriptions";
 
 export const metadata: Metadata = {
   title: "Subscriptions",
 };
 
-export default function SubscriptionsPage() {
+export default async function SubscriptionsPage() {
+  const user = await requireAuthenticatedUser();
+  const subscriptions = await getSubscriptionsForUser(user.id);
+
   return (
     <>
       <PageHeader
@@ -27,7 +31,7 @@ export default function SubscriptionsPage() {
         }
       />
       <SubscriptionExplorer
-        subscriptions={toSubscriptionListItems(demoSubscriptions)}
+        subscriptions={toSubscriptionListItems(subscriptions)}
       />
     </>
   );

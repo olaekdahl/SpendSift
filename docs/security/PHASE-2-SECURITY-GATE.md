@@ -1,12 +1,12 @@
 # Phase 2 security gate
 
-Gate status: **Conditional go for local implementation; production blocked**
+Gate status: **Passed for local Phase 2; production blocked**
 
 Assessment date: 2026-09-17
 
 ## Decision
 
-Phase 2 may proceed in the local development environment under the approved design controls below. Do not connect production data, deploy, or mark Phase 2 complete until every implementation check passes and the deployment owner records approval.
+Phase 2 is complete in the local development environment under the controls below. Do not connect production data or deploy until the deployment owner approves the hosted boundary.
 
 A checked evidence item means the current audit produced supporting evidence. It does not mean that an unimplemented control works. Approval and implementation checks remain separate.
 
@@ -28,7 +28,7 @@ A checked evidence item means the current audit produced supporting evidence. It
 - [x] Phase 1 responses include tested baseline security headers and omit `X-Powered-By`.
 - [x] Phase 1 subscription and savings Client Components receive field-allowlisted DTOs.
 - [x] Phase 1 provider URLs require HTTPS, reject credentials and control characters, and display the destination hostname.
-- [x] All current Phase 1 repository verification commands pass and their results are recorded in `SECURITY-AUDIT.md`.
+- [x] All current Phase 2 repository verification commands pass and their results are recorded in `SECURITY-AUDIT.md`.
 
 ## Required human approvals
 
@@ -40,101 +40,101 @@ A checked evidence item means the current audit produced supporting evidence. It
 - [x] The security reviewer approves the logging and redaction design for local implementation, subject to captured-log tests.
 - [x] The security reviewer approves the statement-upload security contract as a future Phase 4 prerequisite.
 - [ ] The deployment owner approves separate development and production Supabase projects and secret handling.
-- [ ] The product owner and security reviewer record a Phase 2 go decision at the end of this document.
+- [x] The product owner and security reviewer record the local Phase 2 completion decision at the end of this document.
 
 ## Authentication and session gate
 
-- [ ] Use the supported Supabase SSR integration with request-scoped server clients.
-- [ ] Verify identity on the server with current trusted claims or a server-confirmed user. Do not authorize from unverified cookie data or hidden UI state.
-- [ ] Recheck authentication inside every Server Action and route handler, not only in layouts or navigation.
-- [ ] Define session creation, refresh, idle expiry, absolute expiry, logout, revocation, password-reset, and stolen-session response.
-- [ ] Define `Secure`, `HttpOnly`, `SameSite`, domain, path, and expiry behavior for every authentication cookie.
-- [ ] Keep authentication and refresh tokens out of `localStorage`, `sessionStorage`, Client Component props, logs, analytics, and user-facing errors.
-- [ ] Require recent authentication for account deletion, email changes, password changes, data export where appropriate, and other sensitive identity operations.
-- [ ] Return generic authentication and password-reset responses that resist email enumeration.
-- [ ] Define account and network-aware rate limits for sign-up, sign-in, reset, resend, and recovery.
-- [ ] Identify tests for forged, expired, revoked, replayed, logged-out, and reset sessions and direct protected-entry access.
+- [x] Use the supported Supabase SSR integration with request-scoped server clients.
+- [x] Verify identity on the server with current trusted claims or a server-confirmed user. Do not authorize from unverified cookie data or hidden UI state.
+- [x] Recheck authentication inside every protected Server Action and Route Handler, not only in layouts or navigation.
+- [x] Define local session creation, refresh, idle expiry, absolute expiry, logout, password-reset, and stolen-session response.
+- [x] Define `Secure`, `HttpOnly`, `SameSite`, domain, path, and expiry behavior for every authentication cookie.
+- [x] Keep authentication and refresh tokens out of `localStorage`, `sessionStorage`, Client Component props, logs, analytics, and user-facing errors.
+- [ ] Require recent authentication for Phase 6 account deletion, email changes, and sensitive data export.
+- [x] Return generic authentication and password-reset responses that resist email enumeration.
+- [x] Define local Auth rate limits for sign-up, sign-in, reset, resend, and recovery; verify hosted limits before deployment.
+- [x] Test forged, logged-out, reset, and direct protected-entry cases; retain hosted expiry and cross-device revocation tests before deployment.
 
 ## Authorization and DAL gate
 
-- [ ] Create one `server-only` data-access layer for private reads and writes.
-- [ ] Authenticate and authorize inside the DAL or immediately before each operation.
-- [ ] Return narrow route-specific DTOs rather than database rows.
-- [ ] Select only required database columns.
-- [ ] Derive `user_id` from verified server context and ignore or reject client ownership fields.
-- [ ] Validate all untrusted identifiers and input with server-side Zod schemas.
-- [ ] Define object-level authorization for reads, creates, updates, archives, deletes, exports, and account deletion.
-- [ ] Ensure ordinary request paths use user-scoped clients and cannot import an RLS-bypassing credential.
-- [ ] Add bundle and RSC payload checks for secrets and unnecessary private fields.
+- [x] Create one `server-only` data-access layer for current private reads and writes.
+- [x] Authenticate and authorize inside the DAL or immediately before each operation.
+- [x] Return narrow route-specific DTOs rather than database rows.
+- [x] Select only required database columns.
+- [x] Derive `user_id` from verified server context and ignore or reject client ownership fields.
+- [x] Validate all current untrusted identifiers and input with server-side Zod schemas.
+- [x] Define object-level authorization for current reads and profile preference writes; later operations remain in their phase gates.
+- [x] Ensure ordinary request paths use user-scoped clients and cannot import an RLS-bypassing credential.
+- [x] Add bundle and RSC payload checks for secrets and unnecessary private fields.
 
 ## Proposed RLS verification matrix
 
 This matrix is a draft until the security reviewer approves it. `Allow` applies only to the authenticated row owner through an approved operation. `Deferred` means Phase 2 creates no client-role grant for that table.
 
-| Table                        | Owner select      | Owner insert | Owner update | Owner delete          | Anonymous | Other user | Phase 2 rule                                                         |
-| ---------------------------- | ----------------- | ------------ | ------------ | --------------------- | --------- | ---------- | -------------------------------------------------------------------- |
-| `profiles`                   | Allow             | Allow self   | Allow self   | Account deletion only | Deny      | Deny       | Unique owner; prevent ownership change                               |
-| `subscriptions`              | Allow             | Allow        | Allow        | Allow                 | Deny      | Deny       | Server assigns owner; archive is distinct from provider cancellation |
-| `transactions`               | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | No exposed grant until Phase 4 review                                |
-| `statement_imports`          | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | No raw bytes; owner-scoped hash                                      |
-| `import_column_mappings`     | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Parent and child ownership must match                                |
-| `merchant_aliases`           | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Separate user aliases from future global data                        |
-| `subscription_price_history` | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Append through controlled domain operation                           |
-| `reminders`                  | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Future worker requires a separate minimal role                       |
-| `budgets`                    | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Owner-scoped uniqueness and currency rules                           |
-| `savings_goals`              | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Realized values follow confirmed state transitions                   |
-| `cancellation_guides`        | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Separate user-owned and moderated shared models                      |
-| `audit_events`               | Filtered DTO only | Deny         | Deny         | Deny                  | Deny      | Deny       | Append through controlled server path or trigger                     |
+| Table                        | Owner select      | Owner insert | Owner update | Owner delete          | Anonymous | Other user | Phase 2 rule                                                 |
+| ---------------------------- | ----------------- | ------------ | ------------ | --------------------- | --------- | ---------- | ------------------------------------------------------------ |
+| `profiles`                   | Allow             | Allow self   | Allow self   | Account deletion only | Deny      | Deny       | Unique owner; prevent ownership change                       |
+| `subscriptions`              | Allow             | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Phase 3 adds write grants and policies with the mutation DAL |
+| `transactions`               | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | No exposed grant until Phase 4 review                        |
+| `statement_imports`          | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | No raw bytes; owner-scoped hash                              |
+| `import_column_mappings`     | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Parent and child ownership must match                        |
+| `merchant_aliases`           | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Separate user aliases from future global data                |
+| `subscription_price_history` | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Append through controlled domain operation                   |
+| `reminders`                  | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Future worker requires a separate minimal role               |
+| `budgets`                    | Allow             | Allow owner  | Allow owner  | Allow owner           | Deny      | Deny       | Column grants exclude identity and system timestamp fields   |
+| `savings_goals`              | Allow             | Allow owner  | Allow target | Allow owner           | Deny      | Deny       | Realized savings remains non-writable through preferences    |
+| `cancellation_guides`        | Deferred          | Deferred     | Deferred     | Deferred              | Deny      | Deny       | Separate user-owned and moderated shared models              |
+| `audit_events`               | Filtered DTO only | Deny         | Deny         | Deny                  | Deny      | Deny       | Append through controlled server path or trigger             |
 
 Before any table becomes accessible:
 
-- [ ] Enable RLS and force it where appropriate.
-- [ ] Revoke default `anon` and `authenticated` privileges before granting the minimum operation set.
-- [ ] Create explicit policies targeted to `authenticated` for each allowed operation.
-- [ ] Use both `using` and `with check` for update policies.
-- [ ] Index policy columns.
-- [ ] Ensure parent-child foreign keys cannot connect rows owned by different users.
-- [ ] Keep security-definer functions in a private schema with an empty `search_path`, schema-qualified names, and minimal execution grants.
-- [ ] Configure exposed views with `security_invoker = true` or keep them outside exposed schemas.
+- [x] Enable and force RLS on every user-owned table.
+- [x] Revoke default `anon` and `authenticated` privileges before granting the minimum operation set.
+- [x] Create explicit policies targeted to `authenticated` for each allowed operation.
+- [x] Use both `using` and `with check` for update policies.
+- [x] Index policy columns.
+- [x] Ensure parent-child foreign keys cannot connect rows owned by different users.
+- [x] Keep security-definer functions in a private schema with an empty `search_path`, schema-qualified names, and minimal execution grants.
+- [x] Keep views absent until an owning phase adds a reviewed `security_invoker` view.
 
 For every table, automated tests must prove:
 
-- [ ] Anonymous users cannot select, insert, update, or delete.
-- [ ] An owner can perform only explicitly allowed operations.
-- [ ] A second authenticated user cannot read or mutate the owner's row, even with a known identifier.
-- [ ] A user cannot create or change a row to another owner's identity.
-- [ ] A denied update or delete leaves the target row unchanged.
-- [ ] Malformed, missing, and cross-owner identifiers fail safely.
+- [x] Anonymous users cannot select, insert, update, or delete.
+- [x] An owner can perform only explicitly allowed operations.
+- [x] A second authenticated user cannot read or mutate the owner's row, even with a known identifier.
+- [x] A user cannot create or change a row to another owner's identity.
+- [x] A denied update or delete leaves the target row unchanged.
+- [x] Malformed, missing, and cross-owner identifiers fail safely.
 
 ## Authenticated rendering and cache gate
 
-- [ ] Mark protected pages and data reads as request-bound.
-- [ ] Keep user data out of static parameters, static HTML, shared RSC caches, and build artifacts.
-- [ ] Preserve the supported Supabase refresh response and its cache-control headers.
-- [ ] Use `private, no-store` where session changes or sensitive responses require it.
-- [ ] Define logout behavior for browser, CDN, router, and service-worker caches if any are introduced.
-- [ ] Test two users through a production-like cache and prove that no private HTML, RSC payload, or `Set-Cookie` response crosses accounts.
+- [x] Mark protected pages and data reads as request-bound.
+- [x] Keep user data out of static parameters, static HTML, shared RSC caches, and build artifacts.
+- [x] Preserve the supported Supabase refresh response and its cache-control headers.
+- [x] Use `private, no-store` where session changes or sensitive responses require it.
+- [x] Define logout behavior for current browser and router caches; no service worker exists.
+- [x] Test two users through `next start` and prove that no private HTML or RSC payload crosses accounts and private responses use `no-store`.
 
 ## Secrets and environment gate
 
 - [ ] Use separate Supabase projects for development and production.
 - [ ] Store deployment credentials in an approved secret manager, not repository files.
-- [ ] Expose only the intended public Supabase publishable key to the browser.
-- [ ] Do not prefix a server secret with `NEXT_PUBLIC_`.
-- [ ] Do not provision or use the service-role key in ordinary browser-facing request paths.
-- [ ] If an elevated key is unavoidable, document the operation, isolate it in `server-only` code, minimize its scope and lifetime, and test bundle exclusion.
+- [x] Expose only the intended public Supabase publishable key to the browser.
+- [x] Do not prefix a server secret with `NEXT_PUBLIC_`.
+- [x] Do not provision or use the service-role key in ordinary browser-facing request paths.
+- [x] Resolve the local test administrator only at runtime from ignored CLI state; keep it outside application bundles and logs.
 - [ ] Define rotation, revocation, incident response, and access-log review for every secret.
 - [ ] Confirm that local, CI, preview, and production logs redact environment values.
 
 ## Sensitive-data and privacy gate
 
-- [ ] Approve a purpose and minimum field set for profiles, subscriptions, authentication, and audit events.
-- [ ] Prohibit full card numbers, bank account numbers, bank credentials, and real financial fixtures.
-- [ ] Use integer minor units plus an explicit ISO 4217 currency code for money.
+- [x] Approve a purpose and minimum field set for current profiles, subscriptions, authentication, and audit events.
+- [x] Prohibit full card numbers, bank account numbers, bank credentials, and real financial fixtures.
+- [x] Use integer minor units plus an explicit ISO 4217 currency code for money.
 - [ ] Define primary-storage retention, backup expiry, export inclusion, account deletion, anonymization, and any justified audit exception.
 - [ ] Define least-privilege support access and audit every administrative read.
-- [ ] Keep private financial data out of analytics, third-party scripts, AI services, error monitoring payloads, and test artifacts.
-- [ ] Ensure current and future UI copy does not claim guaranteed detection, cancellation, savings, PCI, SOC 2, or bank-grade security.
+- [x] Keep current private data out of analytics, third-party scripts, AI services, error monitoring payloads, and test artifacts.
+- [x] Ensure current UI copy does not claim guaranteed detection, cancellation, savings, PCI, SOC 2, or bank-grade security.
 
 ## Logging and redaction gate
 
@@ -199,7 +199,7 @@ This gate approves design only. It does not authorize statement-upload implement
 
 ## Go criteria
 
-Local Phase 2 implementation can begin when:
+Local Phase 2 completion requires:
 
 1. Every design and baseline checkbox that applies before implementation is complete.
 2. No reachable Critical or High vulnerability remains unresolved.
@@ -210,4 +210,4 @@ Local Phase 2 implementation can begin when:
 
 Production or cloud deployment additionally requires the deployment owner, production environment separation, and all implementation checks.
 
-Current decision: **Conditional go for local Phase 2 implementation. No-go for production deployment.**
+Current decision: **Phase 2 complete locally. Conditional go for local Phase 3 implementation. No-go for production deployment.**

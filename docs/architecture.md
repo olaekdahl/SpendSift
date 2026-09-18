@@ -2,7 +2,7 @@
 
 ## Decision status
 
-This document records the intended first-release architecture. Phase 1 implements only the presentation layer and deterministic calculations over fictional, in-memory data. Phase 2 begins database and authentication work after Phase 1 passes its checks.
+This document records the first-release architecture. Phase 2 implements local Supabase authentication, PostgreSQL persistence, protected server-rendered routes, onboarding, and Row Level Security. Statement parsing remains deferred to Phase 4.
 
 ## Technology baseline
 
@@ -42,6 +42,10 @@ Shared UI belongs in `src/components`. Shared formatting and small platform util
 Browser components send validated commands to server actions or route handlers. Server code verifies the authenticated user, validates input with Zod, and accesses Supabase with a user-scoped client. PostgreSQL Row Level Security provides a second authorization boundary.
 
 Use structured results with either validated data or a stable, generic error code. Do not return internal errors or sensitive details to the browser.
+
+`src/proxy.ts` refreshes authentication tokens with `getClaims()`, propagates Supabase cache headers, and redirects unauthenticated requests away from private routes. The protected application layout repeats verified identity and onboarding checks. Every Server Action verifies identity independently.
+
+Server-only DAL modules under `src/server/dal` select minimal columns and map rows into route-specific DTOs. Client Components never import database clients or receive complete database rows.
 
 ## Financial data rules
 
@@ -85,7 +89,7 @@ No Phase 1 code implements bank, email, or external notification providers.
 
 Phase 2 adds migrations for profiles, subscriptions, transactions, statement imports, column mappings, merchant aliases, price history, reminders, budgets, savings goals, cancellation guides, and audit events.
 
-Every user-owned row includes `user_id`. Each table enables Row Level Security and defines policies that compare `user_id` with the authenticated Supabase user. Server code also checks ownership. Foreign keys use explicit delete behavior, and tests create two users to verify isolation.
+Every user-owned row includes `user_id`. Every table enables Row Level Security and begins with revoked `anon` and `authenticated` grants. Phase 2 grants only profile preferences, onboarding budgets and savings goals, and subscription reads. Future tables remain inaccessible until their owning phase adds reviewed policies. Server code also filters by verified ownership. Cross-owner foreign keys are blocked, and pgTAP plus browser tests verify two-user isolation.
 
 Never place a Supabase service-role key in browser code. Reserve elevated credentials for narrowly scoped, server-only administration when a user-scoped operation cannot meet the requirement.
 
@@ -112,7 +116,7 @@ Use explainable rules for merchant normalization and recurrence detection. Keep 
 
 ### Progressive persistence
 
-Phase 1 uses immutable fictional data so that interface work does not depend on credentials. Phase 2 replaces repository adapters with Supabase-backed implementations. Feature code depends on repository interfaces instead of database calls embedded in components.
+Phase 1 uses immutable fictional data so that interface work does not depend on credentials. Phase 2 replaces protected-page reads and preference writes with Supabase-backed server-only repositories. The public preview and pre-import exercise remain fictional. Later phases add mutation methods only through their owning DAL and RLS changes.
 
 ### Replaceable product name
 

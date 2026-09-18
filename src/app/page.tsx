@@ -35,9 +35,11 @@ export default function Home() {
             How it works
           </a>
           <ThemeToggle />
-          <Link href="/dashboard" className={buttonVariants({ size: "small" })}>
-            Explore demo
-            <ArrowRight aria-hidden="true" className="size-4" />
+          <Link
+            href="/auth/sign-in"
+            className={buttonVariants({ variant: "secondary", size: "small" })}
+          >
+            Sign in
           </Link>
         </div>
       </header>
@@ -59,14 +61,14 @@ export default function Home() {
               </p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link
-                  href="/dashboard"
+                  href="/auth/sign-up"
                   className={buttonVariants({ className: "h-12 px-5" })}
                 >
-                  Open the fictional demo
+                  Create your account
                   <ArrowRight aria-hidden="true" className="size-4" />
                 </Link>
                 <span className="text-xs leading-5 text-muted">
-                  No account or financial information required
+                  Start with manual entry. Statement imports arrive in Phase 4.
                 </span>
               </div>
             </div>
@@ -245,10 +247,10 @@ export default function Home() {
               </p>
             </div>
             <Link
-              href="/dashboard"
+              href="/auth/sign-in"
               className={buttonVariants({ variant: "secondary" })}
             >
-              View demo
+              Sign in
               <Check aria-hidden="true" className="size-4" />
             </Link>
           </div>

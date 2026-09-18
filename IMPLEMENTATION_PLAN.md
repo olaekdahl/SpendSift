@@ -35,7 +35,7 @@ Status: **Conditional go for local Phase 2 implementation; production deployment
 - [x] Create the security remediation plan.
 - [x] Create the Phase 2 security gate and draft RLS verification matrix.
 - [x] Remediate the current Phase 1 header, client-payload, and outbound-URL findings.
-- [ ] Review and accept, revise, or reject every security finding.
+- [x] Review and disposition every Phase 2 security finding.
 - [x] Repeat secret scanning against the canonical Git repository and its history.
 - [x] Approve the authentication and session lifecycle for local implementation.
 - [x] Approve the server-only data-access layer and minimal DTO boundaries for local implementation.
@@ -54,13 +54,25 @@ Status: **Conditional go for local Phase 2 implementation; production deployment
 
 Goal: Give each user a secure account and private Supabase-backed storage.
 
-- [ ] Create SQL migrations for every required entity, constraint, relationship, and index.
-- [ ] Configure Supabase browser and server clients without exposing server secrets.
-- [ ] Implement sign-up, sign-in, sign-out, password reset, and protected routes.
-- [ ] Implement onboarding and profile settings.
-- [ ] Enable Row Level Security on every user-owned table.
-- [ ] Add policy verification and two-user isolation tests.
-- [ ] Replace fictional repositories with user-scoped persistence.
+- [x] Create SQL migrations for every required entity, constraint, relationship, and index.
+- [x] Configure request-scoped Supabase server clients without exposing server secrets.
+- [x] Implement sign-up, confirmation, sign-in, sign-out, password reset, and protected routes.
+- [x] Implement onboarding and persisted profile settings.
+- [x] Enable Row Level Security and explicit grants on every user-owned table.
+- [x] Add 49 policy assertions and browser-level two-user isolation tests.
+- [x] Replace protected-page demo persistence with user-scoped repositories.
+
+## Security gate before Phase 3
+
+Status: **Conditional go for local Phase 3 implementation; production deployment remains blocked.** See `docs/security/checkpoints/phase-2-to-phase-3-audit.md` and `docs/security/PHASE-3-SECURITY-GATE.md`.
+
+- [x] Audit the Phase 2 authentication, session, DAL, RLS, cache, and secret boundaries.
+- [x] Verify registration, email confirmation, sign-in, recovery, logout, and onboarding.
+- [x] Verify anonymous denial and two-user known-ID isolation.
+- [x] Verify protected production responses are private and non-cacheable.
+- [x] Keep subscription writes denied until Phase 3 policies and DAL mutations land together.
+- [ ] Complete all Phase 3 mutation and product-semantic checks.
+- [ ] Run the Phase 3-to-Phase 4 security checkpoint before accepting files.
 
 ## Phase 3: Manual subscription management
 

@@ -1,0 +1,1 @@
+-- Keep shared seed data non-sensitive. User fixtures belong in transactional tests.

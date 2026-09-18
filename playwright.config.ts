@@ -7,7 +7,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: "http://127.0.0.1:3107",
+    baseURL: "http://localhost:3107",
     trace: "on-first-retry",
   },
   projects: [
@@ -21,8 +21,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev -- --hostname 127.0.0.1 --port 3107",
-    url: "http://127.0.0.1:3107",
+    command:
+      "APP_URL=http://localhost:3107 npm run dev -- --hostname 127.0.0.1 --port 3107",
+    url: "http://localhost:3107",
     reuseExistingServer: !process.env.CI,
   },
 });

@@ -107,9 +107,13 @@ export function SavingsPlanner({
           <p className="mt-8 text-sm font-semibold text-[#d6eee3] dark:text-muted">
             Potential monthly savings
           </p>
-          <p className="mt-1 font-display text-5xl font-semibold">
+          <output
+            aria-live="polite"
+            aria-label="Potential monthly savings total"
+            className="mt-1 block font-display text-5xl font-semibold"
+          >
             {formatMoney(monthlySavingsMinor)}
-          </p>
+          </output>
           <p className="mt-3 text-sm text-[#d6eee3] dark:text-muted">
             {formatMoney(monthlySavingsMinor * 12)} over one year
           </p>

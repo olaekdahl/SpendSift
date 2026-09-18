@@ -19,27 +19,25 @@ import {
   formatMoney,
   monthlyEquivalentMinor,
 } from "@/features/subscriptions/calculations";
-import { demoSubscriptions } from "@/features/subscriptions/demo-data";
 import {
   formatDisplayDate,
   frequencyLabels,
 } from "@/features/subscriptions/presentation";
 import { safeExternalUrlSchema } from "@/features/subscriptions/schema";
 import { SubscriptionStatusBadge } from "@/features/subscriptions/status-badge";
+import { requireAuthenticatedUser } from "@/server/auth";
+import { getSubscriptionForUser } from "@/server/dal/subscriptions";
 
 export const metadata: Metadata = {
   title: "Subscription details",
 };
 
-export function generateStaticParams() {
-  return demoSubscriptions.map((subscription) => ({ id: subscription.id }));
-}
-
 export default async function SubscriptionDetailPage({
   params,
 }: PageProps<"/subscriptions/[id]">) {
   const { id } = await params;
-  const subscription = demoSubscriptions.find((item) => item.id === id);
+  const user = await requireAuthenticatedUser();
+  const subscription = await getSubscriptionForUser(user.id, id);
 
   if (!subscription) {
     notFound();

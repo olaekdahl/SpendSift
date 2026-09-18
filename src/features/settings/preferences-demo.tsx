@@ -4,34 +4,47 @@ import {
   BellRing,
   Check,
   Globe2,
+  LoaderCircle,
   MoonStar,
   PiggyBank,
   WalletCards,
 } from "lucide-react";
-import { useState } from "react";
+import { useActionState } from "react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { updatePreferencesAction } from "@/features/onboarding/actions";
+import { formatMinorUnitsForInput } from "@/features/onboarding/schema";
+import { initialOnboardingState } from "@/features/onboarding/state";
 
-export function PreferencesDemo() {
-  const [renewalReminders, setRenewalReminders] = useState(true);
-  const [trialReminders, setTrialReminders] = useState(true);
-  const [saved, setSaved] = useState(false);
+import type { SettingsPreferences } from "./browser-data";
+
+const timeZones = [
+  "UTC",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "Europe/London",
+  "Europe/Stockholm",
+  "Asia/Tokyo",
+  "Australia/Sydney",
+];
+
+export function PreferencesDemo({ profile }: { profile: SettingsPreferences }) {
+  const [state, action, pending] = useActionState(
+    updatePreferencesAction,
+    initialOnboardingState,
+  );
 
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        setSaved(true);
-      }}
-      className="space-y-5"
-    >
+    <form action={action} className="space-y-5">
       <Card className="overflow-hidden">
         <div className="border-b border-line px-5 py-5 sm:px-6">
           <h2 className="text-lg font-extrabold text-ink">Money preferences</h2>
           <p className="mt-1 text-sm text-muted">
-            These choices reset when you refresh the Phase 1 demo.
+            These choices apply to your private workspace.
           </p>
         </div>
         <div className="grid gap-5 p-5 sm:grid-cols-3 sm:p-6">
@@ -41,8 +54,9 @@ export function PreferencesDemo() {
               Currency
             </span>
             <select
+              name="preferredCurrency"
               className="h-11 w-full rounded-md border border-line bg-surface-raised px-3 text-sm text-ink"
-              defaultValue="USD"
+              defaultValue={profile.currency}
             >
               <option value="USD">USD · US dollar</option>
               <option value="EUR" disabled>
@@ -63,10 +77,12 @@ export function PreferencesDemo() {
                 $
               </span>
               <input
-                type="number"
-                min="0"
-                step="1"
-                defaultValue="85"
+                name="monthlyBudget"
+                type="text"
+                inputMode="decimal"
+                defaultValue={formatMinorUnitsForInput(
+                  profile.monthlyBudgetMinor,
+                )}
                 className="h-11 w-full rounded-md border border-line bg-surface-raised pr-3 pl-7 text-sm text-ink"
               />
             </span>
@@ -81,16 +97,36 @@ export function PreferencesDemo() {
                 $
               </span>
               <input
-                type="number"
-                min="0"
-                step="1"
-                defaultValue="25"
+                name="monthlySavingsGoal"
+                type="text"
+                inputMode="decimal"
+                defaultValue={formatMinorUnitsForInput(
+                  profile.monthlySavingsGoalMinor,
+                )}
                 className="h-11 w-full rounded-md border border-line bg-surface-raised pr-3 pl-7 text-sm text-ink"
               />
             </span>
           </label>
+          <label className="block">
+            <span className="mb-2 block text-sm font-bold text-ink">
+              Time zone
+            </span>
+            <select
+              name="timeZone"
+              defaultValue={profile.timeZone}
+              className="h-11 w-full rounded-md border border-line bg-surface-raised px-3 text-sm text-ink"
+            >
+              {timeZones.map((timeZone) => (
+                <option key={timeZone} value={timeZone}>
+                  {timeZone.replaceAll("_", " ")}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </Card>
+
+      <input type="hidden" name="locale" value={profile.locale} />
 
       <Card className="overflow-hidden">
         <div className="border-b border-line px-5 py-5 sm:px-6">
@@ -118,14 +154,14 @@ export function PreferencesDemo() {
             {
               label: "Renewal reminders",
               description: "Show in-app notices before upcoming charges",
-              value: renewalReminders,
-              setter: setRenewalReminders,
+              name: "renewalRemindersEnabled",
+              defaultChecked: profile.renewalRemindersEnabled,
             },
             {
               label: "Trial reminders",
               description: "Show in-app notices before trials expire",
-              value: trialReminders,
-              setter: setTrialReminders,
+              name: "trialRemindersEnabled",
+              defaultChecked: profile.trialRemindersEnabled,
             },
           ].map((preference) => (
             <label
@@ -145,9 +181,9 @@ export function PreferencesDemo() {
                 </span>
               </span>
               <input
+                name={preference.name}
                 type="checkbox"
-                checked={preference.value}
-                onChange={(event) => preference.setter(event.target.checked)}
+                defaultChecked={preference.defaultChecked}
                 className="size-5 accent-[var(--brand)]"
               />
             </label>
@@ -160,10 +196,14 @@ export function PreferencesDemo() {
           className="text-sm font-semibold text-brand-strong"
           aria-live="polite"
         >
-          {saved ? "Demo preferences saved" : ""}
+          {state.message ?? ""}
         </span>
-        <Button type="submit">
-          <Check aria-hidden="true" className="size-4" />
+        <Button type="submit" disabled={pending}>
+          {pending ? (
+            <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
+          ) : (
+            <Check aria-hidden="true" className="size-4" />
+          )}
           Save preferences
         </Button>
       </div>

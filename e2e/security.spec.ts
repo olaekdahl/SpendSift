@@ -1,5 +1,12 @@
 import { expect, test } from "@playwright/test";
 
+import {
+  createTestAccount,
+  deleteTestAccount,
+  northstarSubscription,
+  signInTestAccount,
+} from "./support/supabase";
+
 test("sets baseline browser security headers", async ({ request }) => {
   const response = await request.get("/");
   const headers = response.headers();
@@ -23,8 +30,11 @@ test("sets baseline browser security headers", async ({ request }) => {
 });
 
 test("does not serialize unused subscription fields to list clients", async ({
-  request,
+  page,
 }) => {
+  const account = await createTestAccount({
+    subscriptions: [northstarSubscription],
+  });
   const privateValues = [
     "NORTHSTAR CINEMA 4821",
     "Everyday card •• 42",
@@ -35,22 +45,45 @@ test("does not serialize unused subscription fields to list clients", async ({
     '"paymentMethodNickname"',
   ];
 
-  for (const path of ["/subscriptions", "/savings"]) {
-    const response = await request.get(path);
-    const body = await response.text();
+  try {
+    await signInTestAccount(page, account);
 
-    expect(response.ok()).toBe(true);
-    for (const privateValue of privateValues) {
-      expect(body).not.toContain(privateValue);
+    for (const path of ["/subscriptions", "/savings"]) {
+      const response = await page.goto(path);
+      const body = await response?.text();
+
+      expect(response?.ok()).toBe(true);
+      for (const privateValue of privateValues) {
+        expect(body).not.toContain(privateValue);
+      }
     }
+  } finally {
+    await deleteTestAccount(account);
   }
 });
 
 test("renders only a validated HTTPS provider link", async ({ page }) => {
-  await page.goto("/subscriptions/sub_northstar");
+  const account = await createTestAccount({
+    subscriptions: [northstarSubscription],
+  });
 
-  const providerLink = page.getByRole("link", { name: "Open example.com" });
-  await expect(providerLink).toHaveAttribute("href", "https://example.com");
-  await expect(providerLink).toHaveAttribute("target", "_blank");
-  await expect(providerLink).toHaveAttribute("rel", "noopener noreferrer");
+  try {
+    await signInTestAccount(page, account);
+    const admin = (await import("./support/supabase")).getAdminClient();
+    const { data: subscription } = await admin
+      .from("subscriptions")
+      .select("id")
+      .eq("user_id", account.id)
+      .single();
+
+    expect(subscription?.id).toBeTruthy();
+    await page.goto(`/subscriptions/${subscription?.id}`);
+
+    const providerLink = page.getByRole("link", { name: "Open example.com" });
+    await expect(providerLink).toHaveAttribute("href", "https://example.com");
+    await expect(providerLink).toHaveAttribute("target", "_blank");
+    await expect(providerLink).toHaveAttribute("rel", "noopener noreferrer");
+  } finally {
+    await deleteTestAccount(account);
+  }
 });

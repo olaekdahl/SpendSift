@@ -4,25 +4,38 @@ Audit date: 2026-09-17
 
 ## Executive summary
 
-The current Phase 1 application has a **Low** overall security risk because it contains only fictional data and has no authentication, database, file upload, API endpoint, Server Action, or other state-changing server operation. This assessment found no evidence of a currently reachable Critical or High vulnerability, no exposed credential, and no known vulnerability reported for the locked npm dependency tree.
+The current local Phase 2 application has a **Low** overall security risk. It implements email/password authentication, private Supabase persistence, verified server sessions, minimal data-transfer objects, explicit database grants, and Row Level Security. This assessment found no evidence of a currently reachable Critical or High vulnerability, no exposed credential, and no known vulnerability reported for the locked npm dependency tree.
 
-The repository is not ready for Phase 2. Four High-severity design gaps must be resolved before private financial data enters the application: the authentication and session design is not approved, authorization and Row Level Security are not specified at operation level, authenticated response caching is unresolved, and the future statement-upload pipeline lacks enforceable resource and content limits. These are future risks, not claims that the fictional Phase 1 demo is currently exploitable.
+The repository can proceed to local Phase 3 implementation. Production deployment remains blocked, and the future statement-upload pipeline remains a High-severity design gate that must be implemented and tested before Phase 4 accepts a file.
 
-The assessment tracks 11 original findings. Three Phase 1 issues are remediated; six design gaps and two verification limitations remain open:
+The assessment tracks 11 original findings. Seven are remediated for the current local application; four future or deployment items remain open:
 
 | Severity      | Open | Remediated |
 | ------------- | ---: | ---------: |
 | Critical      |    0 |          0 |
-| High          |    4 |          0 |
+| High          |    1 |          3 |
 | Medium        |    2 |          2 |
 | Low           |    0 |          1 |
-| Informational |    2 |          0 |
+| Informational |    1 |          1 |
 
-**Recommendation: No-go for Phase 2.** Complete and review the Phase 2 security gate before writing authentication, Supabase, database, or real-data code.
+**Baseline recommendation, now superseded:** Phase 2 was a no-go before its security gate and implementation evidence existed. The Phase 2 checkpoint now permits local Phase 3 work while production remains blocked.
+
+## Phase 2 checkpoint update
+
+Phase 2 local implementation completed after the baseline audit. The current local application remains **Low risk**, with no confirmed exploitable vulnerability and no unresolved reachable Critical or High dependency advisory.
+
+The following baseline findings are remediated for the current application:
+
+- **SEC-004:** Email/password registration, confirmation, sign-in, sign-out, and recovery use request-scoped Supabase SSR clients and verified `getClaims()` identity. Browser tests cover the complete flows.
+- **SEC-005:** All user-owned tables enable RLS and begin with revoked client grants. Only Phase 2 operations receive grants and policies. Forty-nine pgTAP assertions plus a browser cross-user known-ID test pass.
+- **SEC-006:** Private routes render dynamically, Supabase refresh cache headers propagate, and a production test requires `private` and `no-store`.
+- **SEC-011:** Git history is present. A redacted Gitleaks scan found no leak across the available history and current checkpoint.
+
+**Phase 3 recommendation:** Conditional go for local implementation. Subscription writes remain denied until Phase 3 adds mutation-specific DAL methods, column grants, policies, and tests. Production deployment remains no-go pending hosted infrastructure and deployment-owner review.
 
 ## Scope
 
-This assessment covers the repository content available at `/home/ola/SpendSift` on 2026-09-17:
+This assessment covers the repository content available at `/home/ola/SpendSift` on 2026-09-17, including the local Phase 2 implementation:
 
 - Next.js App Router routes and layouts under `src/app`.
 - Shared and feature components under `src/components` and `src/features`.
@@ -33,7 +46,7 @@ This assessment covers the repository content available at `/home/ola/SpendSift`
 - Product, architecture, roadmap, and implementation documentation.
 - Generated dependency metadata needed for supply-chain analysis.
 
-The assessment does not cover infrastructure, a deployed production environment, Supabase configuration, database policies, authentication settings, DNS, TLS termination, CI/CD, or Git history because none is present in this workspace.
+The assessment does not cover a hosted production environment, CDN, DNS, TLS termination, hosted backups, production SMTP, production secret management, or CI/CD because none is present in this workspace. Local Supabase configuration, migrations, policies, authentication, and available Git history are covered.
 
 ## Methodology
 
@@ -201,7 +214,7 @@ See `THREAT-MODEL.md` for current and planned data-flow diagrams.
 
 ### SEC-004: Authentication and session design is not approved
 
-- **Status:** Design gap
+- **Status:** Remediated for local Phase 2; hosted deployment verification remains
 - **Severity:** High
 - **Confidence:** High
 - **CWE:** CWE-287, Improper Authentication; CWE-613, Insufficient Session Expiration; CWE-1275, Sensitive Cookie with Improper SameSite Attribute
@@ -218,7 +231,7 @@ See `THREAT-MODEL.md` for current and planned data-flow diagrams.
 
 ### SEC-005: Authorization and RLS rules are not specified or testable
 
-- **Status:** Design gap
+- **Status:** Remediated for current Phase 2 operations; future tables remain deny-by-default
 - **Severity:** High
 - **Confidence:** High
 - **CWE:** CWE-862, Missing Authorization; CWE-639, Authorization Bypass Through User-Controlled Key
@@ -235,7 +248,7 @@ See `THREAT-MODEL.md` for current and planned data-flow diagrams.
 
 ### SEC-006: Authenticated rendering and cache behavior is unresolved
 
-- **Status:** Design gap
+- **Status:** Remediated at the application boundary; hosted CDN verification remains
 - **Severity:** High
 - **Confidence:** Medium
 - **CWE:** CWE-525, Use of Web Browser Cache Containing Sensitive Information
@@ -320,7 +333,7 @@ See `THREAT-MODEL.md` for current and planned data-flow diagrams.
 
 ### SEC-011: Git history and tracked-file exposure could not be assessed
 
-- **Status:** Needs verification
+- **Status:** Remediated for available local history
 - **Severity:** Informational
 - **Confidence:** High
 - **CWE:** Not applicable
@@ -446,37 +459,37 @@ Retention values below are proposed maximums that require product, legal, and pr
 
 Ordinary correctness failures remain separate from security findings unless evidence establishes a security effect.
 
-| Check                                                            | Final result                                                                                                                                                                                                                 | Security interpretation                                                                                                                                  |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npx prettier --check docs/security/*.md IMPLEMENTATION_PLAN.md` | Passed for all four security documents and the updated implementation plan                                                                                                                                                   | Audit deliverables are consistently formatted                                                                                                            |
-| `npm run format:check`                                           | Passed after formatting four previously nonconforming files                                                                                                                                                                  | Repository formatting is clean                                                                                                                           |
-| `npm run lint`                                                   | Passed with no reported issue                                                                                                                                                                                                | No ESLint finding blocked the assessment                                                                                                                 |
-| `npm run typecheck`                                              | Passed under strict TypeScript configuration                                                                                                                                                                                 | No TypeScript error blocked the assessment                                                                                                               |
-| `npm test`                                                       | Passed after remediation: seven test files and 20 tests                                                                                                                                                                      | Unit and component checks pass, including HTTPS URL rejection and browser DTO allowlists                                                                 |
-| `npm run test:e2e`                                               | Passed after remediation: 14 tests across desktop Chromium and mobile Chromium                                                                                                                                               | Primary demo flows, responsive overflow checks, focused Axe WCAG A/AA checks, headers, payload minimization, and safe external links pass                |
-| `npm run build`                                                  | Passed with Next.js 16.3.5; 17 static pages generated                                                                                                                                                                        | The production build succeeds; all current product routes are public static or statically generated content                                              |
-| `npm audit --json`                                               | Passed: zero advisories across 561 dependency nodes                                                                                                                                                                          | No registry-known dependency vulnerability was identified at audit time                                                                                  |
-| `npm ls --all --parseable`                                       | Passed                                                                                                                                                                                                                       | No invalid, missing required, or extraneous installed package was reported                                                                               |
-| `npm outdated --json`                                            | Completed; newer releases exist for `@types/node`, ESLint, React, React DOM, and TypeScript                                                                                                                                  | Version drift alone is not a vulnerability, and this audit made no package change                                                                        |
-| Production `GET /` header probe                                  | Returned `200 OK` with the configured CSP, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy`, `Permissions-Policy`, `Referrer-Policy`, `X-Content-Type-Options`, and `X-Frame-Options`; `X-Powered-By` was absent | Confirms Phase 1 remediation of SEC-001. HSTS remains deployment-dependent, and the public cache policy must not apply to future authenticated responses |
+| Check                                                            | Final result                                                                                                                                                                                                                 | Security interpretation                                                                                                                                        |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npx prettier --check docs/security/*.md IMPLEMENTATION_PLAN.md` | Passed for all four security documents and the updated implementation plan                                                                                                                                                   | Audit deliverables are consistently formatted                                                                                                                  |
+| `npm run format:check`                                           | Passed after formatting four previously nonconforming files                                                                                                                                                                  | Repository formatting is clean                                                                                                                                 |
+| `npm run lint`                                                   | Passed with no reported issue                                                                                                                                                                                                | No ESLint finding blocked the assessment                                                                                                                       |
+| `npm run typecheck`                                              | Passed under strict TypeScript configuration                                                                                                                                                                                 | No TypeScript error blocked the assessment                                                                                                                     |
+| `npm test`                                                       | Passed after Phase 2: 10 test files and 40 tests                                                                                                                                                                             | Unit and component checks pass, including authentication, money parsing, HTTPS URL rejection, and browser DTO allowlists                                       |
+| `npm run test:e2e`                                               | Passed after Phase 2: 28 tests across desktop Chromium and mobile Chromium                                                                                                                                                   | Registration, confirmation, recovery, onboarding, logout, cross-user denial, application flows, Axe checks, headers, payload minimization, and safe links pass |
+| `npm run build`                                                  | Passed with Next.js 16.3.5; 17 static pages generated                                                                                                                                                                        | The production build succeeds; all current product routes are public static or statically generated content                                                    |
+| `npm audit --json`                                               | Passed: zero advisories across 561 dependency nodes                                                                                                                                                                          | No registry-known dependency vulnerability was identified at audit time                                                                                        |
+| `npm ls --all --parseable`                                       | Passed                                                                                                                                                                                                                       | No invalid, missing required, or extraneous installed package was reported                                                                                     |
+| `npm outdated --json`                                            | Completed; newer releases exist for `@types/node`, ESLint, React, React DOM, and TypeScript                                                                                                                                  | Version drift alone is not a vulnerability, and this audit made no package change                                                                              |
+| Production `GET /` header probe                                  | Returned `200 OK` with the configured CSP, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy`, `Permissions-Policy`, `Referrer-Policy`, `X-Content-Type-Options`, and `X-Frame-Options`; `X-Powered-By` was absent | Confirms Phase 1 remediation of SEC-001. HSTS remains deployment-dependent, and the public cache policy must not apply to future authenticated responses       |
 
 ## Limitations
 
-- The workspace has no Git metadata, so tracked state and history were unavailable.
-- No deployed environment, reverse proxy, CDN, DNS, TLS, or cloud configuration was available.
-- Supabase, database schemas, RLS policies, authentication, and file upload do not exist and therefore cannot be penetration-tested.
+- No hosted deployment, reverse proxy, CDN, DNS, TLS, backup, production SMTP, or cloud configuration was available.
+- Local Supabase Auth, migrations, grants, RLS, and application behavior were tested; hosted-provider behavior remains unverified.
+- Statement upload does not exist and therefore cannot be penetration-tested.
 - `npm audit` covers advisories known to the configured npm registry at command time and does not prove that dependencies are defect-free.
 - Full development dependency signature verification stopped on a missing registry attestation endpoint. Production dependency signature verification passed.
-- Secret-pattern searches can miss unknown formats and cannot examine absent Git history or external systems.
-- Automated accessibility testing is not a complete manual accessibility assessment and currently scans only three routes.
+- Secret-pattern searches can miss unknown formats and cannot examine external systems.
+- Automated accessibility testing is not a complete manual accessibility assessment.
 - Mermaid semantic rendering was not completed because the available validator workflow repeatedly stalled. Both diagrams were reviewed as source and have balanced `mermaid` code fences, but a renderer-level syntax check remains outstanding.
 
 ## Overall conclusion
 
-The Phase 1 demo has a small current attack surface and no evidence of an exploitable Critical or High defect. The current header, client-payload, and outbound-URL findings are remediated and covered by automated tests. The source also avoids common secret-exposure, logging, upload, authorization, and CSRF hazards primarily because those sensitive features do not exist yet.
+The local Phase 2 application has no evidence of an exploitable Critical or High defect. Authentication, private persistence, RLS, cache isolation, client-payload minimization, URL safety, and baseline headers are implemented and covered by automated tests.
 
-That favorable Phase 1 result must not be extrapolated to Phase 2. Adding identity and private persistence changes every important trust boundary. Authentication, RLS, cache isolation, the server-only DAL, privacy lifecycle, and security logging require approved designs and executable tests before implementation. Statement upload requires a separate enforced pipeline before it can accept even test files through an application endpoint.
+That local result does not establish production readiness. Hosted secrets, TLS, CDN behavior, backups, SMTP, monitoring, and operational access require deployment evidence. Statement upload requires the separate enforced pipeline before it can accept any file.
 
-## Phase 2 go/no-go recommendation
+## Current go/no-go recommendation
 
-**No-go.** Do not begin Phase 2 until every blocker in `PHASE-2-SECURITY-GATE.md` has an owner, approved design, and verification plan. The gate is intentionally not marked complete by this audit.
+**Conditional go for local Phase 3 implementation. No-go for production deployment.** Keep subscription writes denied until the Phase 3 DAL, policies, and tests land together.
