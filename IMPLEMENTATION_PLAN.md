@@ -184,6 +184,15 @@ Goal: Verify release behavior and document deployment without purchasing or depl
 
 ## Release gate
 
-Status: **Complete for local use with fictional data. Deployment and real financial data remain blocked.** See `docs/RELEASE-READINESS.md` and `docs/security/checkpoints/final-release-audit.md`.
+Status: **Local release and isolated fictional-data preview complete. Production and real financial data remain blocked.** See `docs/RELEASE-READINESS.md`, `docs/security/checkpoints/final-release-audit.md`, and `docs/deployment/DEPLOYMENT-RESULT.md`.
 
-Every acceptance criterion in `docs/product-requirements.md` passes locally. A production release requires the separate infrastructure approvals and controls in `docs/deployment.md`.
+Every acceptance criterion in `docs/product-requirements.md` passes locally. A production release requires the separate infrastructure approvals and controls in `docs/deployment/PREREQUISITES.md`.
+
+## Preview deployment
+
+- [x] Complete the Azure Container Apps preview deployment.
+- [x] Disable email verification only in the separate preview Supabase project.
+- [ ] Restore and prove email verification before production.
+- [x] Defer a custom domain for the initial preview.
+- [x] Defer production monitoring improvements while retaining short, content-free preview logs.
+- [ ] Complete a new production-readiness review before production or real financial data.

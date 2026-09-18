@@ -1,4 +1,5 @@
 begin;
+set local role postgres;
 set local search_path = public, extensions;
 
 select plan(53);
@@ -53,7 +54,7 @@ select throws_ok(
   'the overlap threshold is not directly writable'
 );
 
-reset role;
+set local role postgres;
 
 select lives_ok(
   $$insert into public.subscriptions (
@@ -139,7 +140,7 @@ select throws_ok(
   'reminders cannot be updated directly'
 );
 
-reset role;
+set local role postgres;
 
 insert into phase5_state (reminder_id, reminder_updated_at)
 select id, updated_at
@@ -196,7 +197,7 @@ select results_eq(
   'a read reminder receives a server timestamp'
 );
 
-reset role;
+set local role postgres;
 
 insert into public.statement_imports (
   id, user_id, status, file_sha256, file_size_bytes, row_count, accepted_count,
@@ -354,7 +355,7 @@ select throws_ok(
   'price history cannot be inserted directly'
 );
 
-reset role;
+set local role postgres;
 
 select throws_ok(
   $$insert into public.subscription_price_history (
@@ -428,7 +429,7 @@ select is(
   'a rejected below-threshold change leaves the subscription unchanged'
 );
 
-reset role;
+set local role postgres;
 
 update phase5_state
 set cancellation_updated_at = (
@@ -567,7 +568,7 @@ select results_eq(
   'reactivation clears the realized-savings snapshot'
 );
 
-reset role;
+set local role postgres;
 
 select is(
   (

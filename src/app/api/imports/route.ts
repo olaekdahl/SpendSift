@@ -23,6 +23,7 @@ import {
   ImportDalError,
 } from "@/server/dal/imports";
 import { getProfileForUser } from "@/server/dal/profiles";
+import { getIngressClientAddress } from "@/server/network-address";
 
 export const runtime = "nodejs";
 
@@ -120,11 +121,7 @@ function parseMapping(value: string | null) {
 }
 
 function networkAddress(request: NextRequest) {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",", 1)[0];
-  const candidate =
-    forwarded ?? request.headers.get("x-real-ip") ?? "unavailable";
-  const trimmed = candidate.trim();
-  return trimmed.length > 0 && trimmed.length <= 64 ? trimmed : "unavailable";
+  return getIngressClientAddress(request.headers);
 }
 
 async function readBoundedBody(request: NextRequest) {

@@ -11,7 +11,7 @@ export default defineConfig({
   },
   webServer: {
     command:
-      "APP_URL=http://localhost:3108 npm run start -- --hostname 127.0.0.1 --port 3108",
+      "APP_URL=http://localhost:3108 HOSTNAME=127.0.0.1 PORT=3108 node .next/standalone/server.js",
     url: "http://localhost:3108",
     reuseExistingServer: false,
   },

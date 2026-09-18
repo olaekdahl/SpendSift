@@ -5,6 +5,8 @@ import type { NextRequest } from "next/server";
 import { createNetworkFingerprint } from "@/features/import/fingerprints";
 import { isTrustedRequestOrigin } from "@/lib/supabase/config";
 
+import { getIngressClientAddress } from "./network-address";
+
 const MAX_ACCOUNT_BODY_BYTES = 4096;
 
 export class AccountRequestError extends Error {
@@ -34,15 +36,7 @@ export function validateAccountRequest(request: NextRequest) {
 }
 
 export function accountNetworkFingerprint(request: NextRequest) {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",", 1)[0];
-  const address = (
-    forwarded ??
-    request.headers.get("x-real-ip") ??
-    "unavailable"
-  ).trim();
-  return createNetworkFingerprint(
-    address.length > 0 && address.length <= 64 ? address : "unavailable",
-  );
+  return createNetworkFingerprint(getIngressClientAddress(request.headers));
 }
 
 export async function readAccountJson(request: NextRequest): Promise<unknown> {

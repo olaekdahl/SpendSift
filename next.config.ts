@@ -22,6 +22,7 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   poweredByHeader: false,
   async headers() {
     return [
@@ -31,6 +32,14 @@ const nextConfig: NextConfig = {
           { key: "Content-Security-Policy", value: contentSecurityPolicy },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+          ...(isDevelopment
+            ? []
+            : [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=31536000",
+                },
+              ]),
           {
             key: "Permissions-Policy",
             value:

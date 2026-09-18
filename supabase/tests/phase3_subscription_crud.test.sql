@@ -1,4 +1,5 @@
 begin;
+set local role postgres;
 set local search_path = public, extensions;
 
 select plan(22);
@@ -158,7 +159,7 @@ select is_empty(
   'another user cannot update the owner subscription'
 );
 
-reset role;
+set local role postgres;
 
 select results_eq(
   $$select display_name from public.subscriptions
@@ -177,7 +178,7 @@ select is_empty(
   'another user cannot delete the owner subscription'
 );
 
-reset role;
+set local role postgres;
 
 select results_eq(
   $$select display_name from public.subscriptions
@@ -206,7 +207,7 @@ select results_eq(
   'owner deletes their local subscription record'
 );
 
-reset role;
+set local role postgres;
 
 select ok(
   (

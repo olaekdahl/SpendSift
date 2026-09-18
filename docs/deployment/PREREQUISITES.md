@@ -1,8 +1,8 @@
-# Deployment guide
+# Deployment prerequisites
 
 ## Status
 
-This repository is ready for local fictional-data use only. No deployment has been performed or approved. Complete every prerequisite below in a production-equivalent staging environment before using real financial data.
+An isolated Azure Container Apps preview is live for fictional data only. It does not satisfy the production prerequisites below. Complete every prerequisite in a production-equivalent staging environment before using real financial data or approving production.
 
 ## Required approvals
 
@@ -20,7 +20,7 @@ Use a supported Node.js runtime behind one trusted reverse proxy or managed edge
 The edge must:
 
 - Terminate TLS and redirect HTTP to HTTPS.
-- Strip inbound `X-Forwarded-For` and `X-Real-IP`, then set the authoritative client address.
+- Provide one unambiguous authoritative client address. Azure Container Apps appends the client-supplied chain and guarantees its own address at the rightmost position, which the application validates and uses.
 - Preserve the exact `Origin`, `Host`, `Set-Cookie`, `Cache-Control`, `Expires`, and `Pragma` behavior.
 - Reject request bodies larger than 5 MiB before forwarding.
 - Apply request, connection, and execution timeouts and bounded concurrency.
@@ -146,7 +146,7 @@ Rollback application code to the prior immutable artifact. Roll back database ch
 
 Do not deploy or accept real data while any of these conditions remains true:
 
-- Forwarding-header ownership is unverified.
+- The selected production edge's authoritative forwarded-address behavior is unverified.
 - HTTPS, secure cookies, HSTS scope, CSP, or CDN cache rules are unverified.
 - Backup expiry and restore behavior are undefined or untested.
 - Scheduled retention, monitoring, alerting, or incident response is absent.

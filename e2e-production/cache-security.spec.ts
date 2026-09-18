@@ -34,6 +34,9 @@ test("protects authenticated production responses from shared caching", async ({
       const cacheControl = response?.headers()["cache-control"] ?? "";
       expect(cacheControl).toContain("private");
       expect(cacheControl).toContain("no-store");
+      expect(response?.headers()["strict-transport-security"]).toBe(
+        "max-age=31536000",
+      );
       expect(response?.headers()["x-powered-by"]).toBeUndefined();
     }
 

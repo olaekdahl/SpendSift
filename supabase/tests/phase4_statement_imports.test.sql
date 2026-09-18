@@ -1,4 +1,5 @@
 begin;
+set local role postgres;
 set local search_path = public, extensions;
 
 select plan(32);
@@ -170,7 +171,7 @@ select throws_ok(
   'one active import blocks another upload before body processing'
 );
 
-reset role;
+set local role postgres;
 
 insert into phase4_state (suggestion_id, suggestion_updated_at, import_id)
 select id, updated_at, statement_import_id
@@ -225,7 +226,7 @@ select throws_ok(
   'a stale suggestion edit cannot overwrite a newer value'
 );
 
-reset role;
+set local role postgres;
 update phase4_state
 set suggestion_updated_at = (
   select updated_at from public.import_suggestions
@@ -268,7 +269,7 @@ select results_eq(
   'the import completes when no pending decisions remain'
 );
 
-reset role;
+set local role postgres;
 
 select is(
   (
@@ -317,7 +318,7 @@ select throws_ok(
   'the database rejects a duplicate user-scoped file fingerprint'
 );
 
-reset role;
+set local role postgres;
 
 insert into private.import_attempts (id, user_id, network_sha256)
 values (
@@ -341,7 +342,7 @@ select throws_ok(
   'the database rejects a duplicate user-scoped transaction fingerprint'
 );
 
-reset role;
+set local role postgres;
 
 select is(
   (
@@ -360,7 +361,7 @@ select lives_ok(
   'an authenticated user can receive an opaque import permit'
 );
 
-reset role;
+set local role postgres;
 
 insert into private.import_attempts (user_id, network_sha256)
 select '77777777-7777-7777-7777-777777777777', repeat('d', 64)
@@ -376,7 +377,7 @@ select throws_ok(
   'the database enforces five import attempts per account per hour'
 );
 
-reset role;
+set local role postgres;
 
 insert into private.import_attempts (user_id, network_sha256)
 select '66666666-6666-6666-6666-666666666666', repeat('e', 64)
@@ -408,7 +409,7 @@ select throws_ok(
   'anonymous callers cannot invoke import mutations'
 );
 
-reset role;
+set local role postgres;
 
 select is(
   (

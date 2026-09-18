@@ -1,4 +1,5 @@
 begin;
+set local role postgres;
 set local search_path = public, extensions;
 
 select plan(48);
@@ -220,7 +221,15 @@ select ok(
 );
 
 select is(
-  (select count(*)::integer from public.profiles),
+  (
+    select count(*)::integer
+    from public.profiles
+    where user_id in (
+      '11111111-1111-1111-1111-111111111111',
+      '22222222-2222-2222-2222-222222222222',
+      '33333333-3333-3333-3333-333333333333'
+    )
+  ),
   2,
   'new Auth users receive profiles and the removed fixture profile stays deleted'
 );
@@ -230,6 +239,11 @@ select is(
     select count(*)::integer
     from public.audit_events
     where event_type = 'profiles.insert'
+      and user_id in (
+        '11111111-1111-1111-1111-111111111111',
+        '22222222-2222-2222-2222-222222222222',
+        '33333333-3333-3333-3333-333333333333'
+      )
   ),
   3,
   'profile creation records one redacted audit event per Auth user'
@@ -240,6 +254,10 @@ select is(
     select count(*)::integer
     from public.audit_events
     where event_type = 'subscriptions.insert'
+      and user_id in (
+        '11111111-1111-1111-1111-111111111111',
+        '22222222-2222-2222-2222-222222222222'
+      )
   ),
   2,
   'subscription creation records redacted audit events'
@@ -367,7 +385,7 @@ select results_eq(
   'onboarding replaces the owner savings goal'
 );
 
-reset role;
+set local role postgres;
 
 select ok(
   (
@@ -434,7 +452,7 @@ select ok(
   'authenticated users have no direct audit-event privileges'
 );
 
-reset role;
+set local role postgres;
 
 select throws_ok(
   $$insert into public.subscriptions (

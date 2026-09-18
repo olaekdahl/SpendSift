@@ -73,7 +73,7 @@ The final whole-repository audit found no confirmed exploitable vulnerability an
 
 Release hardening adds route-specific loading states without weakening owner-blind 404 status, a generic root error document, pinned CI actions, application-schema linting, one complete release command, and tested local backup and restore instructions.
 
-**Final decision:** Go for local fictional-data use and CI. No-go for deployment or real financial data until every prerequisite in `docs/deployment.md` receives implementation evidence and approval.
+**Final decision:** Go for local use, CI, and the isolated fictional-data preview. No-go for production or real financial data until every prerequisite in `docs/deployment/PREREQUISITES.md` receives implementation evidence and approval.
 
 ## Scope
 

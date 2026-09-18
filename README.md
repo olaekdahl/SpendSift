@@ -88,6 +88,18 @@ The first Playwright run might require this browser installation command:
 npx playwright install chromium
 ```
 
+## Preview deployment
+
+The live preview runs on Azure Container Apps with a separate non-production Supabase project. It scales from zero to one replica and must use fictional data only.
+
+Open the [SubTrack preview](https://ca-subtrack-preview.redpebble-c159d20a.westeurope.azurecontainerapps.io). Email verification is temporarily disabled there. Do not enter real financial information.
+
+- Read `docs/deployment/CLOUD-DECISION.md` for the Azure and AWS comparison.
+- Read `docs/deployment/DEPLOYMENT-GUIDE.md` for the validated CLI workflow.
+- Read `docs/deployment/EMAIL-VERIFICATION-EXCEPTION.md` before disabling Confirm Email.
+- Read `docs/deployment/ROLLBACK-AND-CLEANUP.md` before changing or deleting resources.
+- Read `docs/deployment/DEPLOYMENT-RESULT.md` for the verified deployment state.
+
 ## Documentation
 
 - Read `docs/product-requirements.md` for first-release requirements.
@@ -95,7 +107,7 @@ npx playwright install chromium
 - Read `IMPLEMENTATION_PLAN.md` for phase status and checklists.
 - Read `docs/future-roadmap.md` for intentionally deferred features.
 - Read `docs/operations.md` for start, backup, restore, update, troubleshooting, and incident procedures.
-- Read `docs/deployment.md` for the unresolved production prerequisites and staged rollout process.
+- Read `docs/deployment/PREREQUISITES.md` for the unresolved production prerequisites and staged rollout process.
 
 ## Privacy notice
 

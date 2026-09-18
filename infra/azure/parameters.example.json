@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "westeurope"
+    },
+    "resourceGroupName": {
+      "value": "rg-subtrack-preview-weu"
+    },
+    "containerRegistryName": {
+      "value": "acrsubtrackpreve82d"
+    },
+    "pullIdentityName": {
+      "value": "id-subtrack-preview-acr"
+    },
+    "logAnalyticsWorkspaceName": {
+      "value": "log-subtrack-preview-weu"
+    },
+    "containerAppsEnvironmentName": {
+      "value": "cae-subtrack-preview-weu"
+    },
+    "containerAppName": {
+      "value": "ca-subtrack-preview"
+    },
+    "containerImage": {
+      "value": "acrsubtrackpreve82d.azurecr.io/subtrack:replace-with-immutable-tag"
+    },
+    "deployContainerApp": {
+      "value": false
+    },
+    "supabaseUrl": {
+      "value": "https://your-preview-project.supabase.co"
+    },
+    "supabasePublishableKey": {
+      "value": "replace-at-deployment-time"
+    }
+  }
+}

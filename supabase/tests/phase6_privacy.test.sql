@@ -1,4 +1,5 @@
 begin;
+set local role postgres;
 set local search_path = public, extensions;
 
 select plan(36);
@@ -92,7 +93,7 @@ select throws_ok(
   'the database rejects a credential-bearing cancellation URL'
 );
 
-reset role;
+set local role postgres;
 update phase6_state
 set guide_updated_at = (
   select updated_at from public.cancellation_guides
@@ -202,7 +203,7 @@ select throws_ok(
   'an export permit cannot be reused'
 );
 
-reset role;
+set local role postgres;
 
 select is(
   (
@@ -271,7 +272,7 @@ select throws_ok(
   'a stale guide edit cannot overwrite a newer value'
 );
 
-reset role;
+set local role postgres;
 
 select is(
   (
@@ -327,7 +328,7 @@ select lives_ok(
   'a recently authenticated owner deletes the current account'
 );
 
-reset role;
+set local role postgres;
 
 select is(
   (
@@ -437,7 +438,7 @@ select throws_ok(
   'the sixth account export attempt is rate limited'
 );
 
-reset role;
+set local role postgres;
 
 insert into private.account_action_attempts (
   user_id, action_name, auth_session_id, network_sha256
