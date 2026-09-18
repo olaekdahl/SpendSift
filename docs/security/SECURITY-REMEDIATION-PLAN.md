@@ -4,19 +4,19 @@ Plan date: 2026-09-17
 
 ## Purpose
 
-This plan converts the findings in `SECURITY-AUDIT.md` into reviewable work and records completed remediation. Phase 4 is complete for local fictional data. Phase 5 may proceed only under `PHASE-5-SECURITY-GATE.md`; production deployment and real statements remain blocked.
+This plan converts the findings in `SECURITY-AUDIT.md` into reviewable work and records completed remediation. Phase 6 is complete for local fictional data. Phase 7 may proceed under `PHASE-7-SECURITY-GATE.md`; production deployment and real statements remain blocked.
 
 ## Completed remediations
 
-| Finding | Completed control                                                                                                                       | Verification                                                                                                | Remaining work                                                                            |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| SEC-001 | Added baseline CSP and supporting browser headers and removed `X-Powered-By`.                                                           | Header assertions, the full browser suite, the production build, and a direct production-header probe pass. | Approve a strict nonce or hash strategy and HSTS at the production deployment boundary.   |
-| SEC-002 | Replaced complete subscription objects at Client Component boundaries with explicit field-allowlisted DTOs and server-only DAL queries. | DTO unit tests and serialized-response browser checks pass.                                                 | Continue exact payload allowlists for every new client boundary.                          |
-| SEC-003 | Added HTTPS-only URL validation, stored-value revalidation, visible destination hostnames, and explicit opener isolation.               | Ten URL unit cases and the provider-link browser test pass.                                                 | Reuse the schema at future write boundaries and approve shared-guide provenance controls. |
-| SEC-004 | Implemented request-scoped SSR Auth, verified claims, confirmation, recovery, bounded sessions, HttpOnly cookies, and logout.           | Registration, recovery, cookie, protected-route, and logout browser tests pass.                             | Verify hosted provider settings and add recent-authentication controls in Phase 6.        |
-| SEC-005 | Implemented explicit grants, RLS, owner-safe foreign keys, and two-user isolation. Future tables remain closed.                         | Forty-nine pgTAP assertions and a known-ID browser isolation test pass.                                     | Add mutation policies only with each owning phase.                                        |
-| SEC-006 | Implemented dynamic private routes, refresh-header propagation, and private no-store production responses.                              | Dedicated `next start` cache test passes.                                                                   | Repeat against hosted CDN and reverse proxy before deployment.                            |
-| SEC-011 | Scanned the available repository history and working checkpoint with Gitleaks.                                                          | No leak found.                                                                                              | Repeat in CI and after credential changes.                                                |
+| Finding | Completed control                                                                                                                       | Verification                                                                                                | Remaining work                                                                          |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| SEC-001 | Added baseline CSP and supporting browser headers and removed `X-Powered-By`.                                                           | Header assertions, the full browser suite, the production build, and a direct production-header probe pass. | Approve a strict nonce or hash strategy and HSTS at the production deployment boundary. |
+| SEC-002 | Replaced complete subscription objects at Client Component boundaries with explicit field-allowlisted DTOs and server-only DAL queries. | DTO unit tests and serialized-response browser checks pass.                                                 | Continue exact payload allowlists for every new client boundary.                        |
+| SEC-003 | Added HTTPS-only URL validation, stored-value revalidation, visible destination hostnames, and explicit opener isolation.               | Subscription and cancellation-guide unit, database, and browser tests pass.                                 | Require separate provenance controls before any shared guide feature.                   |
+| SEC-004 | Implemented request-scoped SSR Auth, verified claims, recovery, bounded sessions, HttpOnly cookies, logout, and password step-up.       | Registration, recovery, cookie, protected-route, logout, export, and deletion browser tests pass.           | Verify hosted provider settings and global revocation before deployment.                |
+| SEC-005 | Implemented explicit grants, RLS, owner-safe foreign keys, and two-user isolation. Future tables remain closed.                         | Forty-nine pgTAP assertions and a known-ID browser isolation test pass.                                     | Add mutation policies only with each owning phase.                                      |
+| SEC-006 | Implemented dynamic private routes, refresh-header propagation, and private no-store production responses.                              | Dedicated `next start` cache test passes.                                                                   | Repeat against hosted CDN and reverse proxy before deployment.                          |
+| SEC-011 | Scanned the available repository history and working checkpoint with Gitleaks.                                                          | No leak found.                                                                                              | Repeat in CI and after credential changes.                                              |
 
 Priority meanings:
 
@@ -96,6 +96,17 @@ The application implements the controls below for bounded local fictional CSV fi
 - In-app notification delivery has no email, SMS, or push transport.
 - Profile, budget, savings goal, overlap, and reminder preferences save atomically.
 - Insight and reminder DTOs exclude ownership and transaction descriptions; audit events contain no financial details.
+
+## Completed Phase 6 controls
+
+- Cancellation guides are owner-maintained, owner-scoped, validated in application and PostgreSQL layers, and protected by optimistic writes.
+- Export and deletion authenticate before bounded body reads and require exact same origin.
+- Current-password verification creates a new Auth session, and one-time permits require that new session plus a five-minute JWT age.
+- Sensitive actions have independent account and network rate limits.
+- JSON exports have fixed filenames and private no-store headers and exclude tokens, source bytes, fingerprints, and unrelated users.
+- Account deletion targets only `auth.uid()`, cascades owner rows, expires cookies, prevents replay, and leaves an anonymous content-free receipt.
+- Privacy disclosures describe local data, source-byte handling, safe action-attempt metadata, opportunistic cleanup, and unresolved deployment policies.
+- Cancellation, export, deletion, and privacy audit events contain no passwords or financial details.
 
 ## Required before public deployment
 

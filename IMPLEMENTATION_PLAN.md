@@ -145,18 +145,31 @@ Status: **Conditional go for local cancellation and privacy implementation with 
 - [x] Verify calendar boundaries, time-zone conversion, reminder identity, and status transitions.
 - [x] Verify owner, anonymous, and known-ID cross-user isolation.
 - [x] Verify minimal DTOs, redacted events, and no external notification transport.
-- [ ] Complete every Phase 6 cancellation-guide, export, deletion, privacy, and accessibility control.
-- [ ] Run the Phase 6-to-Phase 7 checkpoint before release hardening.
+- [x] Complete every Phase 6 cancellation-guide, export, deletion, privacy, and accessibility control.
+- [x] Run the Phase 6-to-Phase 7 checkpoint before release hardening.
 
 ## Phase 6: Cancellation and privacy
 
 Goal: Give the user accurate cancellation guidance and direct control over their data.
 
-- [ ] Implement editable cancellation guides and verification dates.
-- [ ] Add cancellation disclaimers and safe external links.
-- [ ] Add data export and confirmed account deletion.
-- [ ] Add a privacy page and audit-event coverage.
-- [ ] Complete security, privacy, keyboard, screen-reader, contrast, and reduced-motion reviews.
+- [x] Implement editable cancellation guides and verification dates.
+- [x] Add cancellation disclaimers and safe external links.
+- [x] Add data export and confirmed account deletion.
+- [x] Add a privacy page and audit-event coverage.
+- [x] Complete security, privacy, keyboard, screen-reader, contrast, and reduced-motion reviews.
+
+## Security gate before Phase 7
+
+Status: **Go for local release hardening; deployment remains blocked.** See `docs/security/checkpoints/phase-6-to-phase-7-audit.md` and `docs/security/PHASE-7-SECURITY-GATE.md`.
+
+- [x] Audit cancellation-guide ownership, URLs, validation, stale writes, and redacted events.
+- [x] Verify password reauthentication, new-session binding, recent JWTs, one-time permits, and sensitive-action rate limits.
+- [x] Verify fixed-name private JSON export completeness and two-user isolation.
+- [x] Verify account deletion targets only the current Auth user and cascades every owner table.
+- [x] Verify cookie expiry, replay denial, anonymous deletion receipts, and audit privacy.
+- [x] Verify privacy disclosure accuracy, mobile layout, keyboard access, and screen-reader labels.
+- [ ] Complete every Phase 7 release and operational-documentation check.
+- [ ] Run the final whole-repository security audit before the release-candidate commit.
 
 ## Phase 7: Production readiness
 

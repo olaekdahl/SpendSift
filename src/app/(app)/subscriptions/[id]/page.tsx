@@ -8,6 +8,7 @@ import {
   Globe2,
   Pencil,
   ReceiptText,
+  Settings2,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -28,6 +29,7 @@ import { safeExternalUrlSchema } from "@/features/subscriptions/schema";
 import { SubscriptionDangerActions } from "@/features/subscriptions/subscription-danger-actions";
 import { SubscriptionStatusBadge } from "@/features/subscriptions/status-badge";
 import { requireAuthenticatedUser } from "@/server/auth";
+import { getCancellationGuideForUser } from "@/server/dal/cancellation-guides";
 import { getSubscriptionForUser } from "@/server/dal/subscriptions";
 
 export const metadata: Metadata = {
@@ -39,7 +41,10 @@ export default async function SubscriptionDetailPage({
 }: PageProps<"/subscriptions/[id]">) {
   const { id } = await params;
   const user = await requireAuthenticatedUser();
-  const subscription = await getSubscriptionForUser(user.id, id);
+  const [subscription, guide] = await Promise.all([
+    getSubscriptionForUser(user.id, id),
+    getCancellationGuideForUser(user.id, id),
+  ]);
 
   if (!subscription) {
     notFound();
@@ -54,8 +59,10 @@ export default async function SubscriptionDetailPage({
         hostname: new URL(parsedWebsite.data).hostname,
       }
     : null;
-  const parsedCancellationUrl = subscription.cancellationUrl
-    ? safeExternalUrlSchema.safeParse(subscription.cancellationUrl)
+  const preferredCancellationUrl =
+    guide?.cancellationUrl ?? subscription.cancellationUrl;
+  const parsedCancellationUrl = preferredCancellationUrl
+    ? safeExternalUrlSchema.safeParse(preferredCancellationUrl)
     : null;
   const cancellationUrl = parsedCancellationUrl?.success
     ? {
@@ -173,38 +180,67 @@ export default async function SubscriptionDetailPage({
                   cancel the service. Cancellation is complete only when the
                   provider confirms it.
                 </p>
-                {subscription.cancellationInstructions ? (
-                  <p className="mt-3 text-sm leading-6 whitespace-pre-line text-ink">
-                    {subscription.cancellationInstructions}
+                {guide?.verifiedAt ? (
+                  <p className="mt-3 text-xs font-bold text-muted">
+                    Guide last verified {formatDisplayDate(guide.verifiedAt)}
                   </p>
                 ) : null}
-                {cancellationUrl ? (
-                  <a
-                    href={cancellationUrl.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={buttonVariants({
-                      variant: "secondary",
-                      className: "mt-4",
-                    })}
-                  >
-                    Open {cancellationUrl.hostname} cancellation page
-                    <ExternalLink aria-hidden="true" className="size-4" />
-                  </a>
-                ) : website ? (
-                  <a
-                    href={website.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={buttonVariants({
-                      variant: "secondary",
-                      className: "mt-4",
-                    })}
-                  >
-                    Open {website.hostname}
-                    <ExternalLink aria-hidden="true" className="size-4" />
-                  </a>
+                {guide?.phoneNumber ? (
+                  <p className="mt-3 text-sm font-bold text-ink">
+                    Provider phone: {guide.phoneNumber}
+                  </p>
                 ) : null}
+                {(guide?.instructions ??
+                subscription.cancellationInstructions) ? (
+                  <p className="mt-3 text-sm leading-6 whitespace-pre-line text-ink">
+                    {guide?.instructions ??
+                      subscription.cancellationInstructions}
+                  </p>
+                ) : null}
+                {guide?.userNotes ? (
+                  <p className="mt-3 text-sm leading-6 whitespace-pre-line text-muted">
+                    Private note: {guide.userNotes}
+                  </p>
+                ) : null}
+                <div className="flex flex-wrap gap-2">
+                  {cancellationUrl ? (
+                    <a
+                      href={cancellationUrl.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={buttonVariants({
+                        variant: "secondary",
+                        className: "mt-4",
+                      })}
+                    >
+                      Open {cancellationUrl.hostname} cancellation page
+                      <ExternalLink aria-hidden="true" className="size-4" />
+                    </a>
+                  ) : website ? (
+                    <a
+                      href={website.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={buttonVariants({
+                        variant: "secondary",
+                        className: "mt-4",
+                      })}
+                    >
+                      Open {website.hostname}
+                      <ExternalLink aria-hidden="true" className="size-4" />
+                    </a>
+                  ) : null}
+                  <Link
+                    href={`/subscriptions/${subscription.id}/cancellation`}
+                    className={buttonVariants({
+                      variant: "ghost",
+                      className: "mt-4",
+                    })}
+                  >
+                    <Settings2 aria-hidden="true" className="size-4" />
+                    Manage guide
+                  </Link>
+                </div>
               </div>
             </div>
           </Card>

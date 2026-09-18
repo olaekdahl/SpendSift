@@ -4,9 +4,9 @@ Audit date: 2026-09-17
 
 ## Executive summary
 
-The current local Phase 4 application has a **Low** overall security risk for fictional data. It implements verified server sessions, private Supabase persistence, manual subscription management, and a bounded CSV import and review pipeline. This assessment found no evidence of a currently reachable Critical or High vulnerability, no exposed credential, and no known vulnerability reported for the locked npm dependency tree.
+The current local Phase 6 application has a **Low** overall security risk for fictional data. It implements verified server sessions, private persistence, subscription management, bounded CSV import, owner insights, cancellation guidance, password-protected export, and confirmed account deletion. This assessment found no evidence of a currently reachable Critical or High vulnerability, no exposed credential, and no known vulnerability reported for the locked npm dependency tree.
 
-The repository can proceed to local Phase 5 implementation with fictional data. Production deployment and real financial statements remain blocked pending trusted ingress, resource, monitoring, retention, and hosted-infrastructure verification.
+The repository can proceed to Phase 7 local release hardening. Production deployment and real financial statements remain blocked pending trusted ingress, resource, monitoring, retention, legal, support-access, and hosted-infrastructure verification.
 
 The assessment tracks 11 original findings. Seven are remediated for the current local application; four future or deployment items remain open:
 
@@ -57,9 +57,19 @@ In-app reminders use owner-safe source keys, event-date identity, IANA time-zone
 
 **Phase 6 recommendation:** Conditional go for local cancellation guidance, export, deletion, and privacy implementation with fictional data. Production and real financial data remain blocked.
 
+## Phase 6 checkpoint update
+
+Phase 6 cancellation guidance and privacy controls completed locally with no confirmed exploitable vulnerability. Owner guides use dual-layer URL and content validation, owner-safe relationships, optimistic writes, and content-free audit events. Export and deletion authenticate before bounded body reads, require exact same origin and current-password reauthentication, and bind one-time database permits to a newly issued verified Auth session.
+
+Exports use fixed-name private JSON responses and exclude tokens, raw statement bytes, network fingerprints, and unrelated users. Account deletion targets only `auth.uid()`, cascades every owner row, expires current cookies, rejects replay, and retains one anonymous content-free receipt. The privacy page explicitly identifies unresolved deployment retention and support policies.
+
+The post-audit matrix passes 153 unit/component tests, 191 pgTAP assertions, 76 desktop/mobile browser scenarios, production build and cache isolation, dependency checks, and secret scanning.
+
+**Phase 7 recommendation:** Go for local release hardening and documentation. Deployment and real financial data remain blocked pending infrastructure approval.
+
 ## Scope
 
-This assessment covers the repository content available at `/home/ola/SpendSift` on 2026-09-17, including the local Phase 4 implementation:
+This assessment covers the repository content available at `/home/ola/SpendSift` on 2026-09-17, including the local Phase 6 implementation:
 
 - Next.js App Router routes and layouts under `src/app`.
 - Shared and feature components under `src/components` and `src/features`.

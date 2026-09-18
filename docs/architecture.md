@@ -2,7 +2,7 @@
 
 ## Decision status
 
-This document records the first-release architecture through Phase 5. The application implements local Supabase authentication, private persistence, manual subscription management, bounded fictional CSV import, and owner-scoped insights and reminders.
+This document records the first-release architecture through Phase 6. The application implements local Supabase authentication, private persistence, subscription management, bounded fictional CSV import, owner-scoped insights, cancellation guidance, JSON export, and account deletion.
 
 ## Technology baseline
 
@@ -36,6 +36,8 @@ The primary features are:
 - Cancellation guidance
 
 Phase 5 keeps price detection, overlap detection, budget status, and date-window calculations in pure domain modules. PostgreSQL re-derives sensitive price and cancellation decisions before writing. An in-app `NotificationService` adapter reads minimal reminder DTOs; no external notification transport exists.
+
+Phase 6 keeps cancellation guides owner-scoped and write-controlled. Account export and deletion use bounded same-origin Route Handlers, password reauthentication, and one-time database permits bound to a newly issued Auth session. Export is JSON with fixed no-store headers. Account deletion removes only the current Auth user, cascades owner records, and retains an anonymous content-free receipt.
 
 Shared UI belongs in `src/components`. Shared formatting and small platform utilities belong in `src/lib`. Server-only modules use the `server-only` guard where appropriate.
 

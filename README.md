@@ -4,7 +4,7 @@ SubTrack is a mobile-friendly web application that helps individual consumers id
 
 ## Current status
 
-Phase 5 provides local authentication, private persistence, manual subscription management, bounded fictional CSV import, price and overlap insights, budget and savings calculations, an upcoming-charge calendar, and in-app reminders.
+Phase 6 provides local authentication, private persistence, subscription management, bounded fictional CSV import, insights, in-app reminders, owner cancellation guides, password-protected JSON export, and confirmed account deletion.
 
 Use only the downloadable fictional CSV sample. Real statements and production deployment remain blocked until trusted ingress, resource, monitoring, retention, and hosted security controls pass their deployment gates.
 

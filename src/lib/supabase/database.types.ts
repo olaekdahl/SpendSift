@@ -698,6 +698,10 @@ export type Database = {
         };
         Returns: string;
       };
+      begin_account_action: {
+        Args: { action_name: string; network_sha256: string };
+        Returns: string;
+      };
       begin_statement_import_attempt: {
         Args: { network_sha256: string };
         Returns: string;
@@ -738,8 +742,20 @@ export type Database = {
         };
         Returns: string;
       };
+      delete_current_user: {
+        Args: { action_attempt_id: string; confirmation: string };
+        Returns: string;
+      };
       discard_statement_import: {
         Args: { statement_import_id: string };
+        Returns: undefined;
+      };
+      export_current_user_data: {
+        Args: { action_attempt_id: string };
+        Returns: Json;
+      };
+      finish_account_action: {
+        Args: { attempt_id: string; safe_result_code: string };
         Returns: undefined;
       };
       finish_statement_import_attempt: {
@@ -755,6 +771,18 @@ export type Database = {
         Returns: undefined;
       };
       refresh_user_reminders: { Args: never; Returns: undefined };
+      save_cancellation_guide: {
+        Args: {
+          expected_guide_updated_at?: string;
+          guide_cancellation_url?: string;
+          guide_instructions?: string;
+          guide_phone_number?: string;
+          guide_user_notes?: string;
+          guide_verified_at?: string;
+          target_subscription_id: string;
+        };
+        Returns: string;
+      };
       save_profile_preferences: {
         Args: {
           locale: string;

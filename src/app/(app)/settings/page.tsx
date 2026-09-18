@@ -3,6 +3,7 @@ import { ShieldCheck } from "lucide-react";
 
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
+import { AccountDataControls } from "@/features/privacy/account-data-controls";
 import { toSettingsPreferences } from "@/features/settings/browser-data";
 import { PreferencesDemo } from "@/features/settings/preferences-demo";
 import { requireAuthenticatedUser } from "@/server/auth";
@@ -30,6 +31,7 @@ export default async function SettingsPage() {
         }
       />
       <PreferencesDemo profile={toSettingsPreferences(profile)} />
+      <AccountDataControls />
     </>
   );
 }
