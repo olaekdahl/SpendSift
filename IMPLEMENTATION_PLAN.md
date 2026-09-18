@@ -2,6 +2,8 @@
 
 This checklist tracks implementation and verification. Complete one phase and summarize its results before starting the next phase.
 
+Before starting each new phase, run the workspace prompt `/security-phase-audit` in GitHub Copilot Agent mode and enter the transition, such as `Phase 2 to Phase 3`. You can also select **Security phase audit** from **Chat: Run Prompt...**. Review its go/no-go decision before continuing.
+
 ## Phase 1: Foundation
 
 Goal: Provide a local, responsive product demonstration with fictional data and a reliable developer toolchain.
