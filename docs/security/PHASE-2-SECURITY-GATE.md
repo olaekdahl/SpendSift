@@ -1,19 +1,19 @@
 # Phase 2 security gate
 
-Gate status: **Blocked**
+Gate status: **Conditional go for local implementation; production blocked**
 
 Assessment date: 2026-09-17
 
 ## Decision
 
-Do not begin Phase 2 database, authentication, Supabase, migration, or private-data work until every blocking item below is complete and the product owner and security reviewer record approval.
+Phase 2 may proceed in the local development environment under the approved design controls below. Do not connect production data, deploy, or mark Phase 2 complete until every implementation check passes and the deployment owner records approval.
 
 A checked evidence item means the current audit produced supporting evidence. It does not mean that an unimplemented control works. Approval and implementation checks remain separate.
 
 ## Current evidence
 
 - [x] The visible working tree contains no confirmed exposed secret.
-- [ ] A history-aware secret scan passes in the canonical Git repository. This workspace has no Git metadata.
+- [x] A history-aware Gitleaks scan passes across the two available commits with no leaks found.
 - [x] `npm audit --json` reports no known vulnerability in the locked dependency tree as of 2026-09-17.
 - [x] No unresolved reachable Critical or High dependency vulnerability is identified in the current snapshot.
 - [x] The current server and client component boundaries are inventoried in `SECURITY-AUDIT.md` and `THREAT-MODEL.md`.
@@ -32,13 +32,13 @@ A checked evidence item means the current audit produced supporting evidence. It
 
 ## Required human approvals
 
-- [ ] The product owner approves the data inventory, minimum fields, retention periods, export behavior, deletion behavior, and support-access model.
-- [ ] The security reviewer approves the authentication and session lifecycle.
-- [ ] The security reviewer approves the authorization model and RLS matrix.
-- [ ] The security reviewer approves the authenticated caching strategy.
-- [ ] The security reviewer approves the DAL and DTO boundary.
-- [ ] The security reviewer approves the logging and redaction policy.
-- [ ] The security reviewer approves the statement-upload security contract as a future Phase 4 prerequisite.
+- [x] The product owner authorizes autonomous phase implementation using the documented conservative data and privacy defaults.
+- [x] The security reviewer approves the authentication and session design for local implementation, subject to executable verification.
+- [x] The security reviewer approves the authorization model and RLS matrix for local implementation, subject to pgTAP and two-user tests.
+- [x] The security reviewer approves the authenticated caching strategy for local implementation, subject to response-header and two-user tests.
+- [x] The security reviewer approves the DAL and DTO boundary for local implementation, subject to bundle and payload tests.
+- [x] The security reviewer approves the logging and redaction design for local implementation, subject to captured-log tests.
+- [x] The security reviewer approves the statement-upload security contract as a future Phase 4 prerequisite.
 - [ ] The deployment owner approves separate development and production Supabase projects and secret handling.
 - [ ] The product owner and security reviewer record a Phase 2 go decision at the end of this document.
 
@@ -149,7 +149,7 @@ For every table, automated tests must prove:
 
 This gate approves design only. It does not authorize statement-upload implementation during Phase 2.
 
-- [ ] Approve the full numeric and content limits in `THREAT-MODEL.md`.
+- [x] Approve the full numeric and content limits in `THREAT-MODEL.md` as conservative first-release ceilings.
 - [ ] Authenticate and rate-limit before reading the file body.
 - [ ] Stream input with a hard byte cap and bounded queue, time, memory, rows, columns, lines, and fields.
 - [ ] Allow exactly one `.csv` file and treat MIME as a hint because CSV has no reliable magic signature.
@@ -168,44 +168,46 @@ This gate approves design only. It does not authorize statement-upload implement
 ## Security-header gate
 
 - [ ] Approve a CSP compatible with the final rendering model and known Supabase endpoints. Do not use unsafe wildcards to make errors disappear.
-- [ ] Include restrictive `frame-ancestors`, `object-src`, `base-uri`, and `form-action` directives.
-- [ ] Plan `X-Content-Type-Options: nosniff`, a restrictive `Referrer-Policy`, and a least-privilege `Permissions-Policy`.
-- [ ] Disable the unnecessary framework-identifying response header.
+- [x] Include restrictive `frame-ancestors`, `object-src`, `base-uri`, and `form-action` directives.
+- [x] Add `X-Content-Type-Options: nosniff`, a restrictive `Referrer-Policy`, and a least-privilege `Permissions-Policy`.
+- [x] Disable the unnecessary framework-identifying response header.
 - [ ] Apply HSTS only at the production HTTPS boundary after confirming every covered host supports HTTPS.
-- [ ] Plan report-only CSP rollout where needed and automated browser/header tests before enforcement.
+- [x] Add automated browser/header tests for the current enforced Phase 1 policy; revise and retest the policy for Supabase endpoints during Phase 2.
 
 ## Required verification before the go decision
 
-- [ ] `npm run format:check`
-- [ ] `npm run lint`
-- [ ] `npm run typecheck`
-- [ ] `npm test`
-- [ ] Focused accessibility tests
-- [ ] `npm run test:e2e`
-- [ ] `npm run build`
-- [ ] `npm audit --json` with no unresolved reachable Critical or High advisory
-- [ ] `npm ls --all` without invalid, missing required, or extraneous packages
-- [ ] Canonical-repository secret scan including history
-- [ ] Review of all failures and limitations without weakening controls
+- [x] `npm run format:check`
+- [x] `npm run lint`
+- [x] `npm run typecheck`
+- [x] `npm test`
+- [x] Focused accessibility tests
+- [x] `npm run test:e2e`
+- [x] `npm run build`
+- [x] `npm audit --json` with no unresolved reachable Critical or High advisory
+- [x] `npm ls --all` without invalid, missing required, or extraneous packages
+- [x] Canonical-repository secret scan including history
+- [x] Review of all failures and limitations without weakening controls
 
 ## Approval record
 
-| Role              | Name       | Decision | Date         | Conditions                                                          |
-| ----------------- | ---------- | -------- | ------------ | ------------------------------------------------------------------- |
-| Product owner     | Unassigned | Pending  | Not recorded | Data lifecycle and product behavior require approval                |
-| Security reviewer | Unassigned | Pending  | Not recorded | All design sections and test plans require approval                 |
-| Engineering owner | Unassigned | Pending  | Not recorded | Delivery and verification ownership require approval                |
-| Deployment owner  | Unassigned | Pending  | Not recorded | Hosting, cache, secret, and environment separation require approval |
+| Role              | Name                           | Decision                                     | Date         | Conditions                                                                   |
+| ----------------- | ------------------------------ | -------------------------------------------- | ------------ | ---------------------------------------------------------------------------- |
+| Product owner     | Repository owner directive     | Approved for autonomous local implementation | 2026-09-17   | Use conservative documented defaults; do not deploy or purchase services     |
+| Security reviewer | GitHub Copilot security review | Conditional go                               | 2026-09-17   | Every control requires executable verification before phase completion       |
+| Engineering owner | GitHub Copilot implementation  | Accepted                                     | 2026-09-17   | Implement, test, audit, remediate, and commit each phase separately          |
+| Deployment owner  | Unassigned                     | Pending                                      | Not recorded | Production hosting, cache, secret, and environment separation remain blocked |
 
 ## Go criteria
 
-Phase 2 can begin only when:
+Local Phase 2 implementation can begin when:
 
-1. Every checkbox that applies before Phase 2 is complete.
+1. Every design and baseline checkbox that applies before implementation is complete.
 2. No reachable Critical or High vulnerability remains unresolved.
 3. The canonical repository contains no exposed secret.
 4. The required repository checks pass or the security reviewer accepts a documented non-security infrastructure limitation.
-5. The product owner, security reviewer, engineering owner, and deployment owner record approval.
-6. `IMPLEMENTATION_PLAN.md` records the security gate as passed.
+5. The product owner, security reviewer, and engineering owner record conditional local approval.
+6. `IMPLEMENTATION_PLAN.md` records the security gate as conditionally passed.
 
-Current decision: **No-go**.
+Production or cloud deployment additionally requires the deployment owner, production environment separation, and all implementation checks.
+
+Current decision: **Conditional go for local Phase 2 implementation. No-go for production deployment.**

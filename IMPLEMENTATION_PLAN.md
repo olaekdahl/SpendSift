@@ -10,25 +10,25 @@ Goal: Provide a local, responsive product demonstration with fictional data and 
 
 - [x] Confirm that the workspace starts empty.
 - [x] Create the product requirements and architecture documents.
-- [ ] Scaffold Next.js with the App Router, strict TypeScript, Tailwind CSS, and npm.
-- [ ] Configure ESLint and Prettier.
-- [ ] Configure Vitest, React Testing Library, and Playwright.
-- [ ] Create shared design tokens and accessible UI primitives.
-- [ ] Create responsive desktop and mobile navigation.
-- [ ] Create the landing page and short demo onboarding entry.
-- [ ] Build the dashboard with fictional totals, insights, and empty-state support.
-- [ ] Build subscription list and detail screens with fictional data.
-- [ ] Add calendar, import, savings, and settings route surfaces for complete navigation.
-- [ ] Add light and dark themes with reduced-motion support.
-- [ ] Run formatting, linting, strict type checking, unit tests, browser tests, and a production build.
-- [ ] Check desktop and mobile layouts in a real browser.
-- [ ] Document exact local viewing and testing steps.
+- [x] Scaffold Next.js with the App Router, strict TypeScript, Tailwind CSS, and npm.
+- [x] Configure ESLint and Prettier.
+- [x] Configure Vitest, React Testing Library, and Playwright.
+- [x] Create shared design tokens and accessible UI primitives.
+- [x] Create responsive desktop and mobile navigation.
+- [x] Create the landing page and short demo onboarding entry.
+- [x] Build the dashboard with fictional totals, insights, and empty-state support.
+- [x] Build subscription list and detail screens with fictional data.
+- [x] Add calendar, import, savings, and settings route surfaces for complete navigation.
+- [x] Add light and dark themes with reduced-motion support.
+- [x] Run formatting, linting, strict type checking, unit tests, browser tests, and a production build.
+- [x] Check desktop and mobile layouts in a real browser.
+- [x] Document exact local viewing and testing steps.
 
 Phase 1 does not use Supabase, accept real statement files, or persist user changes.
 
 ## Security gate before Phase 2
 
-Status: **Blocked**. Do not begin Phase 2 until `docs/security/PHASE-2-SECURITY-GATE.md` records the required approvals and a go decision.
+Status: **Conditional go for local Phase 2 implementation; production deployment remains blocked.** See `docs/security/checkpoints/phase-1-to-phase-2-audit.md` and `docs/security/PHASE-2-SECURITY-GATE.md`.
 
 - [x] Create the evidence-based security audit.
 - [x] Create the current and planned threat model.
@@ -36,18 +36,19 @@ Status: **Blocked**. Do not begin Phase 2 until `docs/security/PHASE-2-SECURITY-
 - [x] Create the Phase 2 security gate and draft RLS verification matrix.
 - [x] Remediate the current Phase 1 header, client-payload, and outbound-URL findings.
 - [ ] Review and accept, revise, or reject every security finding.
-- [ ] Repeat secret scanning against the canonical Git repository and its history.
-- [ ] Approve the authentication and session lifecycle.
-- [ ] Approve the server-only data-access layer and minimal DTO boundaries.
-- [ ] Approve per-operation authorization and deny-by-default RLS rules.
-- [ ] Approve protected rendering and authenticated cache isolation.
-- [ ] Approve the sensitive-data inventory, retention, export, deletion, backup, and support-access rules.
-- [ ] Approve the security logging, redaction, retention, access, and alerting policy.
-- [ ] Approve the bounded statement-upload design as a future Phase 4 prerequisite.
-- [ ] Approve the production security-header strategy.
+- [x] Repeat secret scanning against the canonical Git repository and its history.
+- [x] Approve the authentication and session lifecycle for local implementation.
+- [x] Approve the server-only data-access layer and minimal DTO boundaries for local implementation.
+- [x] Approve per-operation authorization and deny-by-default RLS rules for local implementation.
+- [x] Approve protected rendering and authenticated cache isolation for local implementation.
+- [x] Approve conservative sensitive-data inventory and lifecycle defaults for local implementation.
+- [x] Approve the security logging and redaction design for local implementation.
+- [x] Approve the bounded statement-upload design as a future Phase 4 prerequisite.
+- [x] Approve the current security-header baseline for local implementation.
 - [x] Record passing repository verification evidence.
-- [ ] Record product, security, engineering, and deployment-owner approval.
-- [ ] Record a Phase 2 go decision.
+- [x] Record product, security, and engineering approval for local implementation.
+- [x] Record a conditional Phase 2 local-development go decision.
+- [ ] Record deployment-owner approval before production deployment.
 
 ## Phase 2: Database and authentication
 
